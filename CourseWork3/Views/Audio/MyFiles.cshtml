@@ -1,0 +1,30 @@
+﻿@model List<AudioFile>
+@{
+    ViewData["Title"] = "Мои аудиофайлы";
+}
+
+<h2>Мои загруженные файлы</h2>
+
+@if (!Model.Any())
+{
+        <p>Файлы не найдены.</p>
+}
+else
+{
+        <ul>
+        @foreach (var audio in Model)
+        {
+                    <li>
+                        <p><strong>@audio.Title</strong> (@audio.OriginalName)</p>
+                        <audio controls style="width: 300px;">
+                            <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />
+                            Ваш браузер не поддерживает воспроизведение аудио.
+                        </audio>
+                        <form asp-action="Delete" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="@audio.Id" />
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </form>
+                    </li>
+        }
+        </ul>
+}
