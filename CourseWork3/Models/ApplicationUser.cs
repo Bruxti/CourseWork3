@@ -1,6 +1,6 @@
-﻿namespace CourseWork3.Models
+﻿using Microsoft.AspNetCore.Identity;
+
+public class ApplicationUser : IdentityUser
 {
-    public class User
-    {
-    }
+    public string DisplayName { get; set; }
 }

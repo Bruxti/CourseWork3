@@ -11,10 +11,10 @@ using System.Security.Claims;
 public class AudioController : Controller
 {
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IWebHostEnvironment _environment;
 
-    public AudioController(ApplicationDbContext context, UserManager<IdentityUser> userManager, IWebHostEnvironment env)
+    public AudioController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env)
     {
         _context = context;
         _userManager = userManager;
