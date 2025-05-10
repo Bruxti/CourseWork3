@@ -1,5 +1,4 @@
 ﻿@model List<CourseWork3.Models.AudioFile>
-@using System.Linq
 @using Microsoft.AspNetCore.Identity
 
 @{
@@ -7,23 +6,9 @@
 }
 
 <div class="text-center">
+   
 
-
-    @if (!User.Identity.IsAuthenticated)
-    {
-            <div class="mb-3">
-                <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Login">Войти</a>
-                <a class="btn btn-secondary" asp-area="Identity" asp-page="/Account/Register">Регистрация</a>
-            </div>
-    }
-    else
-    {
-            <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
-                <button type="submit" class="btn btn-danger mb-3">Выйти</button>
-            </form>
-    }
-
-    @if (!Model.Any())
+    @if (Model == null || !Model.Any())
     {
             <p>Нет загруженных файлов.</p>
     }
@@ -33,29 +18,34 @@
             <ul class="list-unstyled">
             @foreach (var audio in Model)
             {
-                        <li class="mb-3">
+                        <li class="mb-4 border-bottom pb-3">
                             <p><strong>@audio.Title</strong> (@audio.OriginalName)</p>
-                    @if (audio.User != null && !string.IsNullOrWhiteSpace(audio.User.DisplayName))
-                    {
-                <p>Опубликовал: @audio.User.DisplayName</p>
-                    }
-                    else
-                    {
-                            <p>Опубликовал: Неизвестный пользователь</p>
-                    }
 
-                            <audio controls style="width: 100%; max-width: 400px;">
-                                <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />      
+                            <p>
+                                Опубликовал:
+                        @if (!string.IsNullOrWhiteSpace(audio.User?.DisplayName))
+                        {
+                            @audio.User.DisplayName
+                        }
+                        else
+                        {
+                                        <em>Неизвестный пользователь</em>
+                        }
+                            </p>
+
+                            <audio controls class="w-100" style="max-width: 400px;">
+                                <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />
                                 Ваш браузер не поддерживает воспроизведение аудио.
                             </audio>
-                                    <div class="mt-2">
-                    <form method="post" asp-controller="Audio" asp-action="Like" asp-route-id="@audio.Id" style="display:inline">
-                        <button type="submit" class="btn btn-outline-success btn-sm">👍 @audio.Likes</button>
-                    </form>
-                    <form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@audio.Id" style="display:inline">
-                        <button type="submit" class="btn btn-outline-danger btn-sm">👎 @audio.Dislikes</button>
-                    </form>
-                </div>
+
+                            <div class="mt-2">
+                                <form method="post" asp-controller="Audio" asp-action="Like" asp-route-id="@audio.Id" style="display:inline">
+                                    <button type="submit" class="btn btn-outline-success btn-sm">👍 @audio.Likes</button>
+                                </form>
+                                <form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@audio.Id" style="display:inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">👎 @audio.Dislikes</button>
+                                </form>
+                            </div>
                         </li>
             }
             </ul>

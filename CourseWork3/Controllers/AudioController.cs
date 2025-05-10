@@ -92,7 +92,6 @@ public class AudioController : Controller
         return RedirectToAction("MyFiles", "Audio");
     }
 
-    [AllowAnonymous]
     public IActionResult MyFiles()
     {
         var userId = _userManager.GetUserId(User);
@@ -100,6 +99,7 @@ public class AudioController : Controller
         return View(files);
     }
 
+    [AllowAnonymous]
     public IActionResult Stream(int id)
     {
         var file = _context.AudioFiles.Find(id);
