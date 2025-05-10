@@ -46,7 +46,7 @@ public class AudioController : Controller
 
             // Получаем идентификатор пользователя
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
+            var user = await _userManager.GetUserAsync(User);
             // Создаем объект AudioFile для сохранения в базе данных
             var audio = new AudioFile
             {
@@ -92,7 +92,7 @@ public class AudioController : Controller
         return RedirectToAction("MyFiles", "Audio");
     }
 
-
+    [AllowAnonymous]
     public IActionResult MyFiles()
     {
         var userId = _userManager.GetUserId(User);

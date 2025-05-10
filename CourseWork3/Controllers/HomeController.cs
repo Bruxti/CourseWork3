@@ -20,6 +20,7 @@ public class HomeController : Controller
     public IActionResult Index()
     {
         var audioFiles = _context.AudioFiles
+            .Include(a => a.User)
             .OrderByDescending(a => a.UploadDate)
             .ToList();
 

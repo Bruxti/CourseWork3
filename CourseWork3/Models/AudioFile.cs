@@ -7,13 +7,14 @@ namespace CourseWork3.Models
         public int Id { get; set; }
 
         [Required]
-        public string UserId { get; set; } // от Identity
+        public string UserId { get; set; }
+        public ApplicationUser User { get; set; }   
 
         [Required]
-        public string FileName { get; set; } // имя на сервере
+        public string FileName { get; set; } 
 
         [Required]
-        public string OriginalName { get; set; } // имя, как загрузил пользователь
+        public string OriginalName { get; set; }
 
         public DateTime UploadDate { get; set; } = DateTime.Now;
 

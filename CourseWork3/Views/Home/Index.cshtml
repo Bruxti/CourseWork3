@@ -35,8 +35,17 @@
             {
                         <li class="mb-3">
                             <p><strong>@audio.Title</strong> (@audio.OriginalName)</p>
+                    @if (audio.User != null && !string.IsNullOrWhiteSpace(audio.User.DisplayName))
+                    {
+                <p>Опубликовал: @audio.User.DisplayName</p>
+                    }
+                    else
+                    {
+                            <p>Опубликовал: Неизвестный пользователь</p>
+                    }
+
                             <audio controls style="width: 100%; max-width: 400px;">
-                                <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />
+                                <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />      
                                 Ваш браузер не поддерживает воспроизведение аудио.
                             </audio>
                                     <div class="mt-2">
