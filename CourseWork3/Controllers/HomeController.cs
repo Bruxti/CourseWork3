@@ -16,7 +16,7 @@ public class HomeController : Controller
         _context = context;
     }
 
-    [Authorize]
+    //[Authorize]
     public IActionResult Index()
     {
         var audioFiles = _context.AudioFiles

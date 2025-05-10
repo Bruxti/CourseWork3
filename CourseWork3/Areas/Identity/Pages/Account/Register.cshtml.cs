@@ -71,7 +71,7 @@ namespace CourseWork3.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
-            [Display(Name = "Никнейм")]
+            [Display(Name = "Nickname")]
             public string DisplayName { get; set; }
 
             /// <summary>
