@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 [Authorize]
@@ -170,6 +171,42 @@ public class AudioController : Controller
 
         _context.SaveChanges();
         return RedirectToAction("Index", "Home");
+    }
+
+    [HttpGet]
+    public IActionResult Search()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public IActionResult Search(string query, string category)
+    {
+        if (string.IsNullOrWhiteSpace(query) || string.IsNullOrWhiteSpace(category))
+            return View("SearchResults", new List<AudioFile>());
+
+        IQueryable<AudioFile> result = _context.AudioFiles.Include(a => a.User);
+
+        switch (category.ToLower())
+        {
+            case "title":
+                result = result.Where(a => a.Title.ToLower().Contains(query.ToLower()));
+                break;
+            case "genre":
+                result = result.Where(a => a.Genre.ToLower().Contains(query.ToLower()));
+                break;
+            case "user":
+                result = result.Where(a => a.User.DisplayName.ToLower().Contains(query.ToLower()));
+                break;
+            case "filename":
+                result = result.Where(a => a.OriginalName.ToLower().Contains(query.ToLower()));
+                break;
+            default:
+                result = Enumerable.Empty<AudioFile>().AsQueryable();
+                break;
+        }
+
+        return View("SearchResults", result.ToList());
     }
 
 }
