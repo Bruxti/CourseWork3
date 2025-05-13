@@ -1,9 +1,7 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using CourseWork3.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+using System.Diagnostics;
 
 namespace CourseWork3.Controllers;
 

@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using CourseWork3.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using System.IO;
-using System.Threading.Tasks;
-using CourseWork3;
-using CourseWork3.Models;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 [Authorize]
@@ -28,7 +25,7 @@ public class AudioController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Upload(string title, string genre, IFormFile audioFile)
+    public async Task<IActionResult> Upload(string title, string genre, string author, IFormFile audioFile)
     {
         if (audioFile != null && audioFile.Length > 0)
         {
@@ -51,7 +48,8 @@ public class AudioController : Controller
             var audio = new AudioFile
             {
                 Title = title,              // Название
-                Genre = genre,              // Жанр
+                Genre = genre,
+                Author = author,
                 FileName = fileName,        // Имя файла
                 OriginalName = audioFile.FileName,  // Оригинальное имя файла
                 UserId = userId,
@@ -110,14 +108,14 @@ public class AudioController : Controller
         return File(stream, "audio/mpeg");
     }
     [HttpPost]
-     [HttpPost]
+    [HttpPost]
     public IActionResult Like(int id)
     {
         var audio = _context.AudioFiles.Find(id);
         if (audio == null) return NotFound();
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
+
         var existingVote = _context.UserVotes
             .FirstOrDefault(v => v.UserId == userId && v.AudioFileId == id);
 
@@ -149,7 +147,7 @@ public class AudioController : Controller
         if (audio == null) return NotFound();
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
+
         var existingVote = _context.UserVotes
             .FirstOrDefault(v => v.UserId == userId && v.AudioFileId == id);
 

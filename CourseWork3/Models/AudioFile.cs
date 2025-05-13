@@ -8,10 +8,10 @@ namespace CourseWork3.Models
 
         [Required]
         public string UserId { get; set; }
-        public ApplicationUser User { get; set; }   
+        public ApplicationUser User { get; set; }
 
         [Required]
-        public string FileName { get; set; } 
+        public string FileName { get; set; }
 
         [Required]
         public string OriginalName { get; set; }
@@ -21,6 +21,7 @@ namespace CourseWork3.Models
         public string? Title { get; set; }
 
         public string? Genre { get; set; }
+        public string? Author { get; set; }
         public int Likes { get; set; }
         public int Dislikes { get; set; }
     }

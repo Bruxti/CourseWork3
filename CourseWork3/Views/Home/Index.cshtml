@@ -19,20 +19,31 @@
             @foreach (var audio in Model)
             {
                         <li class="mb-4 border-bottom pb-3">
-                            <p><strong>@audio.Title</strong> (@audio.OriginalName)</p>
-                                    <p><strong>Жанр:</strong> @audio.Genre</p>
+                    @{
+                        var displayData = new List<(string Label, string? Value)>
+    {
+        ("Название", audio.Title),
+        ("Оригинальное имя", audio.OriginalName),
+        ("Автор", audio.Author),
+        ("Жанр", audio.Genre),
+        ("Опубликовал", audio.User?.DisplayName)
+    };
+                    }
+                    @foreach (var item in displayData)
+                    {
+                <p>
+                    <strong>@item.Label:</strong>
+                            @if (!string.IsNullOrWhiteSpace(item.Value))
+                            {
+                                @item.Value
+                            }
+                            else
+                            {
+                            <em>Неизвестно</em>
+                            }
+                </p>
+                    }
 
-                            <p>
-                                Опубликовал:
-                        @if (!string.IsNullOrWhiteSpace(audio.User?.DisplayName))
-                        {
-                            @audio.User.DisplayName
-                        }
-                        else
-                        {
-                                        <em>Неизвестный пользователь</em>
-                        }
-                            </p>
 
                             <audio controls class="w-100" style="max-width: 400px;">
                                 <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />
