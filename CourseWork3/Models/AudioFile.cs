@@ -31,5 +31,5 @@ namespace CourseWork3.Models
 
     }
 }
-/*  dotnet ef migrations add //changeNAME// --project CourseWork3 
+/*  dotnet ef migrations add profs --project CourseWork3 
 dotnet ef database update --project CourseWork3*/

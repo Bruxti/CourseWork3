@@ -16,28 +16,49 @@ else
 		@foreach (var audio in Model)
 		{
 			<li class="mb-3">
-				<p><strong>@audio.Title</strong> (@audio.OriginalName)</p>
-				<p>
-					<strong>Жанр:</strong> @audio.Genre
-				</p>
-				<p>
-					<strong>Автор:</strong> @audio.Author
-				</p>
-				<p>
-					Пользователь:
-					@if (!string.IsNullOrWhiteSpace(audio.User?.DisplayName))
+				@{
+					var displayData = new List<(string Label, string? Value)>
 					{
-						@audio.User.DisplayName
-					}
-					else
+						("Название", audio.Title)
+					};
+
+					if (audio.IsMusicOnly)
 					{
-						<em>Неизвестно</em>
+						displayData.Add(("Автор", audio.Author));
+						displayData.Add(("Жанр", audio.Genre));
 					}
-				</p>
-				<audio controls style="width: 100%; max-width: 400px;">
+
+					var uploaderDisplay = !string.IsNullOrWhiteSpace(audio.User?.DisplayName) ? audio.User.DisplayName : "Неизвестный пользователь";
+					//displayData.Add(("Опубликовал", uploaderDisplay));
+				}
+				@foreach (var item in displayData)
+				{
+					<p>
+						<strong>@item.Label:</strong>
+						@if (!string.IsNullOrWhiteSpace(item.Value))
+						{
+							@item.Value
+						}
+						else
+						{
+							<em>Неизвестно</em>
+						}
+					</p>
+				}
+				@if (!string.IsNullOrWhiteSpace(audio.User?.Id))
+				{
+					<p>
+						<strong>Опубликовал:</strong>
+						<a asp-action="UserProfile" asp-controller="Audio" asp-route-id="@audio.User.Id">
+							@uploaderDisplay
+						</a>
+					</p>
+				}
+				<audio id="player-@audio.Id" src="/Audio/Stream/@audio.Id" controls style="width: 100%; max-width: 400px;">
 					<source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg"/>
 					Ваш браузер не поддерживает воспроизведение.
 				</audio>
+				<hr>
 			</li>
 		}
 	</ul>
@@ -64,4 +85,24 @@ else
 			}
 		</ul>
 	</div>
+	@section Scripts {
+		<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const players = document.querySelectorAll('audio[id^="player-"]');
+
+            players.forEach(player => {
+                let playRegistered = false;
+                const id = player.id.replace("player-", "");
+
+                player.addEventListener('play', function () {
+                    if (playRegistered) return;
+                    playRegistered = true;
+
+                    fetch(`/Audio/RegisterPlay/${id}`, { method: 'POST' });
+                });
+            });
+        });
+    </script>
+	}
+
 }

@@ -1,0 +1,75 @@
+﻿@model CourseWork3.Models.UserProfileViewModel
+
+@{
+	ViewData["Title"] = "Профиль пользователя";
+}
+
+<h2>Пользователь: @Model.DisplayName</h2>
+<p><strong>Всего прослушиваний:</strong> @Model.TotalPlays</p>
+<p><strong>Всего скачиваний:</strong> @Model.TotalDownloads</p>
+
+@if (!Model.AudioFiles.Any())
+{
+	<p>Нет опубликованных записей.</p>
+}
+else
+{
+	<h3>Записи:</h3>
+	<ul class="list-unstyled">
+		@foreach (var audio in Model.AudioFiles)
+		{
+			<li class="mb-3">
+				<p><strong>@audio.Title</strong></p>
+				<p>Прослушиваний: @audio.PlayCount</p>
+				<p>Скачиваний: @audio.DownloadCount</p>
+				<audio id="player-@audio.Id" src="/Audio/Stream/@audio.Id" controls class="w-100" style="max-width: 400px;">
+					<source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg"/>
+					Ваш браузер не поддерживает воспроизведение аудио.
+				</audio>
+				<div class="mt-2">
+					<form method="post" asp-controller="Audio" asp-action="Like" asp-route-id="@audio.Id" style="display:inline">
+						<button type="submit" class="btn btn-outline-success btn-sm">👍 @audio.Likes</button>
+					</form>
+					<form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@audio.Id" style="display:inline">
+						<button type="submit" class="btn btn-outline-danger btn-sm">👎 @audio.Dislikes</button>
+						<!--            +++++++++++++++++++++         -->
+					</form>
+					<button class="btn btn-outline-primary btn-sm"
+					        onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = audio.Id }, Context.Request.Scheme)')">
+						Копировать ссылку
+					</button>
+					<!--            -----------------------         -->
+					<a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = audio.Id })">⬇ Скачать</a>
+
+				</div>
+			</li>
+			<hr>
+		}
+	</ul>
+	@section Scripts {
+		<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const players = document.querySelectorAll('audio[id^="player-"]');
+
+            players.forEach(player => {
+                let playRegistered = false;
+                const id = player.id.replace("player-", "");
+
+                player.addEventListener('play', function () {
+                    if (playRegistered) return;
+                    playRegistered = true;
+
+                    fetch(`/Audio/RegisterPlay/${id}`, { method: 'POST' });
+                });
+            });
+        });
+    </script>
+	}
+
+	
+}
+<script>
+	function copyToClipboard(text) {
+		navigator.clipboard.writeText(text);
+	}
+</script>

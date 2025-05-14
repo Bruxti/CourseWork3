@@ -22,16 +22,15 @@
 						var displayData = new List<(string Label, string? Value)>
 						{
 							("Название", audio.Title)
-							//("IsMus", audio.IsMusicOnly.ToString()),
-							//("Оригинальное имя", audio.OriginalName)
 						};
 
 						if (audio.IsMusicOnly)
 						{
 							displayData.Add(("Автор", audio.Author));
 							displayData.Add(("Жанр", audio.Genre));
-							displayData.Add(("Опубликовал", audio.User?.DisplayName));
 						}
+						var uploaderDisplay = !string.IsNullOrWhiteSpace(audio.User?.DisplayName) ? audio.User.DisplayName : "Неизвестный пользователь";
+						//displayData.Add(("Опубликовал", uploaderDisplay));
 					}
 					@foreach (var item in displayData)
 					{
@@ -47,9 +46,17 @@
 							}
 						</p>
 					}
+					@if (!string.IsNullOrWhiteSpace(audio.User?.Id))
+					{
+						<p>
+							<strong>Опубликовал:</strong>
+							<a asp-action="UserProfile" asp-controller="Audio" asp-route-id="@audio.User.Id">
+								@uploaderDisplay
+							</a>
+						</p>
+					}
 
-
-					<audio controls class="w-100" style="max-width: 400px;">
+					<audio id="player-@audio.Id" src="/Audio/Stream/@audio.Id" controls class="w-100" style="max-width: 400px;">
 						<source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg"/>
 						Ваш браузер не поддерживает воспроизведение аудио.
 					</audio>
@@ -102,6 +109,26 @@
 				}
 			</ul>
 		</div>
+		@section Scripts {
+			<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const players = document.querySelectorAll('audio[id^="player-"]');
+
+            players.forEach(player => {
+                let playRegistered = false;
+                const id = player.id.replace("player-", "");
+
+                player.addEventListener('play', function () {
+                    if (playRegistered) return;
+                    playRegistered = true;
+
+                    fetch(`/Audio/RegisterPlay/${id}`, { method: 'POST' });
+                });
+            });
+        });
+    </script>
+		}
+
 	}
 </div>
 <script>

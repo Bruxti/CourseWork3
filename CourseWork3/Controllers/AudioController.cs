@@ -30,6 +30,7 @@ public class AudioController : Controller
     public async Task<IActionResult> Upload(string title, string genre, string author, IFormFile audioFile)
     {
         bool isMusicOnly = Request.Form["isMusicOnly"] == "on";
+
         if (audioFile != null && audioFile.Length > 0)
         {
             string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
@@ -49,8 +50,8 @@ public class AudioController : Controller
             AudioFile audio = new AudioFile
             {
                 Title = title,
-                Genre = isMusicOnly ? null : genre,
-                Author = isMusicOnly ? null : author,
+                Genre = isMusicOnly ? genre : null,
+                Author = isMusicOnly ? author : null,
                 FileName = fileName,
                 OriginalName = audioFile.FileName,
                 UserId = userId,
@@ -63,9 +64,12 @@ public class AudioController : Controller
 
             return RedirectToAction("Index", "Home");
         }
+
         ModelState.AddModelError("", "Файл не выбран или пуст.");
         return View();
     }
+
+
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
@@ -131,15 +135,26 @@ public class AudioController : Controller
     }
 
     [AllowAnonymous]
-    public async Task<IActionResult> Stream(int id)
+    public IActionResult Stream(int id)
     {
         AudioFile? file = _context.AudioFiles.Find(id);
         if (file == null) return NotFound();
-        file.PlayCount++;
-        await _context.SaveChangesAsync();
+
         string path = Path.Combine(_environment.WebRootPath, "uploads", file.FileName);
         FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
         return File(stream, "audio/mpeg");
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> RegisterPlay(int id)
+    {
+        AudioFile? file = await _context.AudioFiles.FindAsync(id);
+        if (file == null) return NotFound();
+
+        file.PlayCount++;
+        await _context.SaveChangesAsync();
+        return Ok();
     }
 
     [HttpPost]
@@ -225,21 +240,23 @@ public class AudioController : Controller
         switch (category.ToLower())
         {
             case "title":
-                result = result.Where(a => a.Title.ToLower().Contains(query.ToLower()));
+                result = result.Where(a => a.Title != null && a.Title.ToLower().Contains(query.ToLower()));
                 break;
             case "genre":
-                result = result.Where(a => a.Genre.ToLower().Contains(query.ToLower()));
+                result = result.Where(a => a.Genre != null && a.Genre.ToLower().Contains(query.ToLower()));
+                result = result.Where(a => !a.IsMusicOnly);
                 break;
             case "user":
-                result = result.Where(a => a.User.DisplayName.ToLower().Contains(query.ToLower()));
+                result = result.Where(a => a.User != null && a.User.DisplayName != null && a.User.DisplayName.ToLower().Contains(query.ToLower()));
                 break;
             case "filename":
-                result = result.Where(a => a.OriginalName.ToLower().Contains(query.ToLower()));
+                result = result.Where(a => a.OriginalName != null && a.OriginalName.ToLower().Contains(query.ToLower()));
                 break;
             default:
                 result = Enumerable.Empty<AudioFile>().AsQueryable();
                 break;
         }
+
 
         X.PagedList.IPagedList<AudioFile> pagedResult = result.OrderByDescending(a => a.Id).ToPagedList(page, pageSize);
         ViewBag.Query = query;
@@ -274,6 +291,29 @@ public class AudioController : Controller
         return View(audio);
     }
 
+    [AllowAnonymous]
+    public async Task<IActionResult> UserProfile(string id)
+    {
+        var user = await _userManager.Users
+            .Include(u => u.AudioFiles)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+        if (user == null)
+            return NotFound();
+
+        var totalDownloads = user.AudioFiles.Sum(f => f.DownloadCount);
+        var totalPlays = user.AudioFiles.Sum(f => f.PlayCount);
+
+        var model = new UserProfileViewModel
+        {
+            DisplayName = user.DisplayName,
+            AudioFiles = user.AudioFiles.ToList(),
+            TotalDownloads = totalDownloads,
+            TotalPlays = totalPlays
+        };
+
+        return View("~/Views/User/UserProfile.cshtml", model);
+    }
 
 
 }

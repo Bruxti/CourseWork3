@@ -6,42 +6,59 @@
 
 <form asp-action="Upload" method="post" enctype="multipart/form-data">
 	<div class="form-check">
-		<input type="checkbox" class="form-check-input" id="isMusicOnly" name="isMusicOnly"/>
+		<input type="checkbox" class="form-check-input" id="isMusicOnly" name="isMusicOnly" checked />
 		<label class="form-check-label" for="isMusicOnly">Музыкальный трек?</label>
-	</div>
-	<div>
-		<label>Название:</label>
-		<input type="text" name="title" required/>
 	</div>
 
 	<div>
-	<div id="metadataFields" style="display: none;">
+		<label>Название:</label>
+		<input type="text" name="title" required />
+	</div>
+
+	<div id="metadataFields">
 		<div class="form-group">
 			<label for="genre">Жанр</label>
-			<input type="text" class="form-control" name="genre"/>
+			<input type="text" class="form-control" name="genre" id="genre" />
 		</div>
 		<div class="form-group">
 			<label for="author">Автор</label>
-			<input type="text" class="form-control" name="author"/>
+			<input type="text" class="form-control" name="author" id="author" />
 		</div>
 	</div>
+
 	<div>
 		<label>Файл (MP3):</label>
-		<input type="file" name="audioFile" accept=".mp3" required/>
+		<input type="file" name="audioFile" accept=".mp3" required />
 	</div>
+
 	<button type="submit">Загрузить</button>
+
 </form>
 
 @if (!ViewData.ModelState.IsValid)
 {
-	<p style="color: red;">@ViewData.ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage</p>
+	<p style="color: red;">
+		@ViewData.ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
+	</p>
 }
 
 @section Scripts {
 	<script>
-    const checkbox = document.getElementById('isMusicOnly');
-    const metadataFields = document.getElementById('metadataFields');
-    checkbox.addEventListener('change', () => {
-            metadataFields.style.display = checkbox.checked ? 'block' : 'none';
-    });
-</script>}
+		document.addEventListener("DOMContentLoaded", function () {
+			const checkbox = document.getElementById('isMusicOnly');
+			const genreField = document.querySelector('input[name="genre"]');
+			const authorField = document.querySelector('input[name="author"]');
+			const metadataFields = document.getElementById('metadataFields');
+
+			function updateFields() {
+				const enabled = checkbox.checked;
+				metadataFields.style.display = enabled ? 'block' : 'none';
+				genreField.disabled = !enabled;
+				authorField.disabled = !enabled;
+			}
+
+			checkbox.addEventListener('change', updateFields);
+			updateFields(); // начальное состояние
+		});
+	</script>
+}
