@@ -1,62 +1,67 @@
-﻿@model X.PagedList.IPagedList<CourseWork3.Models.AudioFile>
+﻿@model X.PagedList.IPagedList<AudioFile>
 
 @{
-    ViewData["Title"] = "Результаты поиска";
+	ViewData["Title"] = "Результаты поиска";
 }
 
 <h2>Результаты поиска</h2>
 
 @if (!Model.Any())
 {
-        <p>Ничего не найдено.</p>
+	<p>Ничего не найдено.</p>
 }
 else
 {
-        <ul class="list-unstyled">
-        @foreach (var audio in Model)
-        {
-                    <li class="mb-3">
-                        <p><strong>@audio.Title</strong> (@audio.OriginalName)</p>
-                        <p><strong>Жанр:</strong> @audio.Genre</p>
-                        <p><strong>Автор:</strong> @audio.Author</p>
-                        <p>Пользователь:
-                    @if (!string.IsNullOrWhiteSpace(audio.User?.DisplayName))
-                    {
-                        @audio.User.DisplayName
-                    }
-                    else
-                    {
-                                    <em>Неизвестно</em>
-                    }
-                        </p>
-                        <audio controls style="width: 100%; max-width: 400px;">
-                            <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />
-                            Ваш браузер не поддерживает воспроизведение.
-                        </audio>
-                    </li>
-        }
-        </ul>
+	<ul class="list-unstyled">
+		@foreach (var audio in Model)
+		{
+			<li class="mb-3">
+				<p><strong>@audio.Title</strong> (@audio.OriginalName)</p>
+				<p>
+					<strong>Жанр:</strong> @audio.Genre
+				</p>
+				<p>
+					<strong>Автор:</strong> @audio.Author
+				</p>
+				<p>
+					Пользователь:
+					@if (!string.IsNullOrWhiteSpace(audio.User?.DisplayName))
+					{
+						@audio.User.DisplayName
+					}
+					else
+					{
+						<em>Неизвестно</em>
+					}
+				</p>
+				<audio controls style="width: 100%; max-width: 400px;">
+					<source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg"/>
+					Ваш браузер не поддерживает воспроизведение.
+				</audio>
+			</li>
+		}
+	</ul>
 
-        <div class="pagination-container mt-4">
-                <ul class="pagination justify-content-center">
-            @if (Model.HasPreviousPage)
-            {
-                                        <li class="page-item">
-                                            <a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber - 1 })">« Назад</a>
-                                        </li>
-            }
-            @for (var i = 1; i <= Model.PageCount; i++)
-            {
-                                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                            <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
-                                        </li>
-            }
-            @if (Model.HasNextPage)
-            {
-                                        <li class="page-item">
-                                            <a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber + 1 })">Вперед »</a>
-                                        </li>
-            }
-                        </ul>
-        </div>
+	<div class="pagination-container mt-4">
+		<ul class="pagination justify-content-center">
+			@if (Model.HasPreviousPage)
+			{
+				<li class="page-item">
+					<a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber - 1 })">« Назад</a>
+				</li>
+			}
+			@for (var i = 1; i <= Model.PageCount; i++)
+			{
+				<li class="page-item @(i == Model.PageNumber ? "active" : "")">
+					<a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+				</li>
+			}
+			@if (Model.HasNextPage)
+			{
+				<li class="page-item">
+					<a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber + 1 })">Вперед »</a>
+				</li>
+			}
+		</ul>
+	</div>
 }

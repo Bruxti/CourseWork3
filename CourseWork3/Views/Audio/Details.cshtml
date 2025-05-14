@@ -1,56 +1,57 @@
-﻿@model CourseWork3.Models.AudioFile
+﻿@model AudioFile
 
 @{
-    ViewData["Title"] = "Аудиозапись";
-    var link = Url.Action("Details", "Audio", new { id = Model.Id }, Context.Request.Scheme);
+	ViewData["Title"] = "Аудиозапись";
+	var link = Url.Action("Details", "Audio", new { id = Model.Id }, Context.Request.Scheme);
 }
 
 <h2>@Model.Title</h2>
 <!--            +++++++++++++++++++++         -->
 @{
-    var displayData = new List<(string Label, string? Value)>
-    {
-        ("Название", Model.Title),
-        //("IsMus", Model.IsMusicOnly.ToString()),
-        ("Оригинальное имя", Model.OriginalName)
-    };
+	var displayData = new List<(string Label, string? Value)>
+	{
+		("Название", Model.Title),
+		//("IsMus", Model.IsMusicOnly.ToString()),
+		("Оригинальное имя", Model.OriginalName)
+	};
 
-    if (Model.IsMusicOnly)
-    {
-        displayData.Add(("Автор", Model.Author));
-        displayData.Add(("Жанр", Model.Genre));
-        displayData.Add(("Опубликовал", Model.User?.DisplayName));
-    }
+	if (Model.IsMusicOnly)
+	{
+		displayData.Add(("Автор", Model.Author));
+		displayData.Add(("Жанр", Model.Genre));
+		displayData.Add(("Опубликовал", Model.User?.DisplayName));
+	}
 }
 @foreach (var item in displayData)
 {
-                                <p>
-                                    <strong>@item.Label:</strong>
-        @if (!string.IsNullOrWhiteSpace(item.Value))
-        {
-            @item.Value
-        }
-        else
-        {
-                                                    <em>Неизвестно</em>
-        }
-                                </p>
-}}
+	<p>
+		<strong>@item.Label:</strong>
+		@if (!string.IsNullOrWhiteSpace(item.Value))
+		{
+			@item.Value
+		}
+		else
+		{
+			<em>Неизвестно</em>
+		}
+	</p>
+}
+}
 
 
 <audio controls style="width:100%; max-width:400px;">
-    <source src="@Url.Action("Stream", "Audio", new { id = Model.Id })" type="audio/mpeg" />
-    Ваш браузер не поддерживает аудио.
+	<source src="@Url.Action("Stream", "Audio", new { id = Model.Id })" type="audio/mpeg"/>
+	Ваш браузер не поддерживает аудио.
 </audio>
 
 <div class="mt-3">
-    <button class="btn btn-outline-primary btn-sm" onclick="copyLink()">Скопировать ссылку</button>
-    <input type="text" id="shareLink" value="@link" readonly style="position:absolute; left:-9999px;" />
+	<button class="btn btn-outline-primary btn-sm" onclick="copyLink()">Скопировать ссылку</button>
+	<input type="text" id="shareLink" value="@link" readonly style="position:absolute; left:-9999px;"/>
 
 </div>
 
 @section Scripts {
-        <script>
+	<script>
             function copyLink() {
                 const link = '@link';
                 navigator.clipboard.writeText(link).then(() => {          
@@ -59,4 +60,5 @@
             }
         </script>
 }
+
 <!--            -----------------------         -->

@@ -1,101 +1,108 @@
-﻿@model X.PagedList.IPagedList<CourseWork3.Models.AudioFile>
+﻿@model X.PagedList.IPagedList<AudioFile>
 @using Microsoft.AspNetCore.Identity
 
 @{
-    ViewData["Title"] = "Главная";
+	ViewData["Title"] = "Главная";
 }
 
 <div class="text-center">
 
-    @if (Model == null || !Model.Any())
-    {
-                <p>Нет загруженных файлов.</p>
-    }
-    else
-    {
-                <h3>Доступные аудиофайлы</h3>
-                <ul class="list-unstyled">
-            @foreach (var audio in Model)
-            {
-                                <li class="mb-4 border-bottom pb-3">
-                    @{
-                        var displayData = new List<(string Label, string? Value)>
-    {
-        ("Название", audio.Title)
-        //("IsMus", audio.IsMusicOnly.ToString()),
-        //("Оригинальное имя", audio.OriginalName)
-    };
+	@if (Model == null || !Model.Any())
+	{
+		<p>Нет загруженных файлов.</p>
+	}
+	else
+	{
+		<h3>Доступные аудиофайлы</h3>
+		<ul class="list-unstyled">
+			@foreach (var audio in Model)
+			{
+				<li class="mb-4 border-bottom pb-3">
+					@{
+						var displayData = new List<(string Label, string? Value)>
+						{
+							("Название", audio.Title)
+							//("IsMus", audio.IsMusicOnly.ToString()),
+							//("Оригинальное имя", audio.OriginalName)
+						};
 
-                        if (audio.IsMusicOnly)
-                        {
-                            displayData.Add(("Автор", audio.Author));
-                            displayData.Add(("Жанр", audio.Genre));
-                            displayData.Add(("Опубликовал", audio.User?.DisplayName));
-                        }
-                    }
-                    @foreach (var item in displayData)
-                    {
-                            <p>
-                                <strong>@item.Label:</strong>
-                            @if (!string.IsNullOrWhiteSpace(item.Value))
-                            {
-                                @item.Value
-                            }
-                            else
-                            {
-                                            <em>Неизвестно</em>
-                            }
-                            </p>
-                    }
+						if (audio.IsMusicOnly)
+						{
+							displayData.Add(("Автор", audio.Author));
+							displayData.Add(("Жанр", audio.Genre));
+							displayData.Add(("Опубликовал", audio.User?.DisplayName));
+						}
+					}
+					@foreach (var item in displayData)
+					{
+						<p>
+							<strong>@item.Label:</strong>
+							@if (!string.IsNullOrWhiteSpace(item.Value))
+							{
+								@item.Value
+							}
+							else
+							{
+								<em>Неизвестно</em>
+							}
+						</p>
+					}
 
 
-                                    <audio controls class="w-100" style="max-width: 400px;">
-                                        <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />
-                                        Ваш браузер не поддерживает воспроизведение аудио.
-                                    </audio>
-                                            <p><strong>Прослушиваний:</strong> @audio.PlayCount</p>
-        <p><strong>Скачиваний:</strong> @audio.DownloadCount</p>
+					<audio controls class="w-100" style="max-width: 400px;">
+						<source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg"/>
+						Ваш браузер не поддерживает воспроизведение аудио.
+					</audio>
+					<p>
+						<strong>Прослушиваний:</strong> @audio.PlayCount
+					</p>
+					<p>
+						<strong>Скачиваний:</strong> @audio.DownloadCount
+					</p>
 
-                                    <div class="mt-2">
-                                        <form method="post" asp-controller="Audio" asp-action="Like" asp-route-id="@audio.Id" style="display:inline">
-                                            <button type="submit" class="btn btn-outline-success btn-sm">👍 @audio.Likes</button>
-                                        </form>
-                                        <form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@audio.Id" style="display:inline">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm">👎 @audio.Dislikes</button>
-                                                    <!--            +++++++++++++++++++++         -->
-                                                </form><button class="btn btn-outline-primary btn-sm" 
-                                                onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = audio.Id }, Context.Request.Scheme)')">Копировать ссылку</button>
-                                                        <!--            -----------------------         -->
-                                                <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = audio.Id })">⬇ Скачать</a>
+					<div class="mt-2">
+						<form method="post" asp-controller="Audio" asp-action="Like" asp-route-id="@audio.Id" style="display:inline">
+							<button type="submit" class="btn btn-outline-success btn-sm">👍 @audio.Likes</button>
+						</form>
+						<form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@audio.Id" style="display:inline">
+							<button type="submit" class="btn btn-outline-danger btn-sm">👎 @audio.Dislikes</button>
+							<!--            +++++++++++++++++++++         -->
+						</form>
+						<button class="btn btn-outline-primary btn-sm"
+						        onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = audio.Id }, Context.Request.Scheme)')">
+							Копировать ссылку
+						</button>
+						<!--            -----------------------         -->
+						<a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = audio.Id })">⬇ Скачать</a>
 
-                                    </div>
+					</div>
 
-                                </li>
-            }
-                </ul>
-                <div class="pagination-container mt-4">
-                    <ul class="pagination justify-content-center">
-                @if (Model.HasPreviousPage)
-                {
-                                <li class="page-item">
-                                    <a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber - 1 })">« Назад</a>
-                                </li>
-                }
-                @for (var i = 1; i <= Model.PageCount; i++)
-                {
-                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                    <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
-                                </li>
-                }
-                @if (Model.HasNextPage)
-                {
-                                <li class="page-item">
-                                    <a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber + 1 })">Вперед »</a>
-                                </li>
-                }
-                    </ul>
-                </div>
-    }
+				</li>
+			}
+		</ul>
+		<div class="pagination-container mt-4">
+			<ul class="pagination justify-content-center">
+				@if (Model.HasPreviousPage)
+				{
+					<li class="page-item">
+						<a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber - 1 })">« Назад</a>
+					</li>
+				}
+				@for (var i = 1; i <= Model.PageCount; i++)
+				{
+					<li class="page-item @(i == Model.PageNumber ? "active" : "")">
+						<a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+					</li>
+				}
+				@if (Model.HasNextPage)
+				{
+					<li class="page-item">
+						<a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber + 1 })">Вперед »</a>
+					</li>
+				}
+			</ul>
+		</div>
+	}
 </div>
 <script>
     function copyToClipboard(text) {

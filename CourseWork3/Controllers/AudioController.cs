@@ -72,7 +72,7 @@ public class AudioController : Controller
         AudioFile? audioFile = await _context.AudioFiles.FindAsync(id);
         if (audioFile == null)
             return NotFound();
-        
+
         string filePath = Path.Combine(_environment.WebRootPath, "audio", audioFile.FileName);
         if (System.IO.File.Exists(filePath))
             System.IO.File.Delete(filePath);
@@ -241,7 +241,7 @@ public class AudioController : Controller
                 break;
         }
 
-        var pagedResult = result.OrderByDescending(a => a.Id).ToPagedList(page, pageSize);
+        X.PagedList.IPagedList<AudioFile> pagedResult = result.OrderByDescending(a => a.Id).ToPagedList(page, pageSize);
         ViewBag.Query = query;
         ViewBag.Category = category;
 
@@ -249,22 +249,22 @@ public class AudioController : Controller
     }
     public async Task<IActionResult> Download(int id)
     {
-        var audio = await _context.AudioFiles.FindAsync(id);
+        AudioFile? audio = await _context.AudioFiles.FindAsync(id);
         if (audio == null)
             return NotFound();
 
         audio.DownloadCount++;
         await _context.SaveChangesAsync();
 
-        var path = Path.Combine(_environment.WebRootPath, "uploads", audio.FileName);
-        var fileBytes = await System.IO.File.ReadAllBytesAsync(path);
+        string path = Path.Combine(_environment.WebRootPath, "uploads", audio.FileName);
+        byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(path);
         return File(fileBytes, "application/octet-stream", audio.OriginalName);
     }
 
     [AllowAnonymous]
     public async Task<IActionResult> Details(int id)
     {
-        var audio = await _context.AudioFiles
+        AudioFile? audio = await _context.AudioFiles
             .Include(a => a.User)
             .FirstOrDefaultAsync(a => a.Id == id);
 
