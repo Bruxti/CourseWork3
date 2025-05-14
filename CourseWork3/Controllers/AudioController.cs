@@ -92,12 +92,56 @@ public class AudioController : Controller
         return RedirectToAction("MyFiles", "Audio");
     }
 
+    [Authorize]
     public IActionResult MyFiles()
     {
         var userId = _userManager.GetUserId(User);
-        var files = _context.AudioFiles.Where(f => f.UserId == userId).ToList();
+        var files = _context.AudioFiles
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.Id)
+            .ToList();
+
         return View(files);
     }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var audio = await _context.AudioFiles.FindAsync(id);
+        if (audio == null || audio.UserId != _userManager.GetUserId(User))
+            return NotFound();
+
+        return View(audio);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, string title, string genre, string author, string originalName)
+    {
+        var audio = await _context.AudioFiles.FindAsync(id);
+        if (audio == null || audio.UserId != _userManager.GetUserId(User))
+            return NotFound();
+
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(originalName))
+        {
+            ModelState.AddModelError("", "Название и оригинальное имя обязательны.");
+            return View(audio);
+        }
+
+        audio.Title = title;
+        audio.Genre = genre;
+        audio.Author = author;
+        audio.OriginalName = originalName;
+
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("MyFiles");
+    }
+
+
+
 
     [AllowAnonymous]
     public IActionResult Stream(int id)

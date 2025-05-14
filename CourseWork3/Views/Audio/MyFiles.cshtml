@@ -14,12 +14,40 @@ else
         <ul>
         @foreach (var audio in Model)
         {
-                    <li>
-                        <p><strong>@audio.Title</strong> (@audio.OriginalName)</p>
+                                        <li class="mb-4 border-bottom pb-3">
+                @{
+                    var displayData = new List<(string Label, string? Value)>
+    {
+        ("Название", audio.Title),
+        ("Оригинальное имя", audio.OriginalName),
+        ("Автор", audio.Author),
+        ("Жанр", audio.Genre),
+        ("Опубликовал", audio.User?.DisplayName)
+    };
+                }
+                @foreach (var item in displayData)
+                {
+                                        <p>
+                                            <strong>@item.Label:</strong>
+                        @if (!string.IsNullOrWhiteSpace(item.Value))
+                        {
+                            @item.Value
+                        }
+                        else
+                        {
+                                                            <em>Неизвестно</em>
+                        }
+                                        </p>
+                }
                         <audio controls style="width: 300px;">
                             <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />
                             Ваш браузер не поддерживает воспроизведение аудио.
                         </audio>
+                @if (audio.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                {
+                <a class="btn btn-warning btn-sm mt-2" asp-action="Edit" asp-route-id="@audio.Id">Редактировать</a>
+                }
+    
                         <form asp-action="Delete" method="post" style="display:inline;">
                             <input type="hidden" name="id" value="@audio.Id" />
                             <button type="submit" class="btn btn-danger">Удалить</button>
