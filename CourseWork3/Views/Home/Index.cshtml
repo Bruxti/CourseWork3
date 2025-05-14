@@ -48,6 +48,8 @@
                                         <source src="@Url.Action("Stream", "Audio", new { id = audio.Id })" type="audio/mpeg" />
                                         Ваш браузер не поддерживает воспроизведение аудио.
                                     </audio>
+                                            <p><strong>Прослушиваний:</strong> @audio.PlayCount</p>
+        <p><strong>Скачиваний:</strong> @audio.DownloadCount</p>
 
                                     <div class="mt-2">
                                         <form method="post" asp-controller="Audio" asp-action="Like" asp-route-id="@audio.Id" style="display:inline">
@@ -56,7 +58,10 @@
                                         <form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@audio.Id" style="display:inline">
                                             <button type="submit" class="btn btn-outline-danger btn-sm">👎 @audio.Dislikes</button>
                                         </form>
+                                                <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = audio.Id })">⬇ Скачать</a>
+
                                     </div>
+
                                 </li>
             }
                 </ul>

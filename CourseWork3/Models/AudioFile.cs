@@ -24,5 +24,8 @@ namespace CourseWork3.Models
         public string? Author { get; set; }
         public int Likes { get; set; }
         public int Dislikes { get; set; }
+
+        public int PlayCount { get; set; } = 0;
+        public int DownloadCount { get; set; } = 0;
     }
 }

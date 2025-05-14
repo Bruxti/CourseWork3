@@ -21,11 +21,11 @@ public class HomeController : Controller
         int pageSize = 15;
         int pageNumber = page ?? 1;
 
-        var audioFiles = _context.AudioFiles
+        IOrderedQueryable<AudioFile> audioFiles = _context.AudioFiles
             .Include(a => a.User)
             .OrderByDescending(a => a.UploadDate);
 
-        var pagedList = audioFiles.ToPagedList(pageNumber, pageSize);
+        X.PagedList.IPagedList<AudioFile> pagedList = audioFiles.ToPagedList(pageNumber, pageSize);
 
 
 

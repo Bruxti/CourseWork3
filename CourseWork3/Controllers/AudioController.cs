@@ -31,29 +31,27 @@ public class AudioController : Controller
     {
         if (audioFile != null && audioFile.Length > 0)
         {
-            var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-            Directory.CreateDirectory(uploadsFolder); // на случай, если папки ещё нет
+            string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+            Directory.CreateDirectory(uploadsFolder);
 
-            var fileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
-            var filePath = Path.Combine(uploadsFolder, fileName);
+            string fileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
+            string filePath = Path.Combine(uploadsFolder, fileName);
 
-            // Сохраняем файл
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            using (FileStream stream = new FileStream(filePath, FileMode.Create))
             {
                 await audioFile.CopyToAsync(stream);
             }
 
-            // Получаем идентификатор пользователя
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = await _userManager.GetUserAsync(User);
-            // Создаем объект AudioFile для сохранения в базе данных
-            var audio = new AudioFile
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ApplicationUser? user = await _userManager.GetUserAsync(User);
+
+            AudioFile audio = new AudioFile
             {
-                Title = title,              // Название
+                Title = title,
                 Genre = genre,
                 Author = author,
-                FileName = fileName,        // Имя файла
-                OriginalName = audioFile.FileName,  // Оригинальное имя файла
+                FileName = fileName,
+                OriginalName = audioFile.FileName,
                 UserId = userId,
                 UploadDate = DateTime.Now
             };
@@ -63,40 +61,30 @@ public class AudioController : Controller
 
             return RedirectToAction("Index", "Home");
         }
-
-        // Если файл не был выбран
         ModelState.AddModelError("", "Файл не выбран или пуст.");
         return View();
     }
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
-        var audioFile = await _context.AudioFiles.FindAsync(id);
+        AudioFile? audioFile = await _context.AudioFiles.FindAsync(id);
         if (audioFile == null)
-        {
-            return NotFound(); // Если файл не найден
-        }
-
-        // Удаляем файл из файловой системы
-        var filePath = Path.Combine(_environment.WebRootPath, "audio", audioFile.FileName);
+            return NotFound();
+        
+        string filePath = Path.Combine(_environment.WebRootPath, "audio", audioFile.FileName);
         if (System.IO.File.Exists(filePath))
-        {
-            System.IO.File.Delete(filePath); // Удаление файла
-        }
+            System.IO.File.Delete(filePath);
 
-        // Удаляем запись из базы данных
         _context.AudioFiles.Remove(audioFile);
         await _context.SaveChangesAsync();
-
-        // После удаления перенаправляем на страницу с файлами
         return RedirectToAction("MyFiles", "Audio");
     }
 
     [Authorize]
     public IActionResult MyFiles()
     {
-        var userId = _userManager.GetUserId(User);
-        var files = _context.AudioFiles
+        string? userId = _userManager.GetUserId(User);
+        List<AudioFile> files = _context.AudioFiles
             .Where(a => a.UserId == userId)
             .OrderByDescending(a => a.Id)
             .ToList();
@@ -108,7 +96,7 @@ public class AudioController : Controller
     [Authorize]
     public async Task<IActionResult> Edit(int id)
     {
-        var audio = await _context.AudioFiles.FindAsync(id);
+        AudioFile? audio = await _context.AudioFiles.FindAsync(id);
         if (audio == null || audio.UserId != _userManager.GetUserId(User))
             return NotFound();
 
@@ -120,7 +108,7 @@ public class AudioController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, string title, string genre, string author, string originalName)
     {
-        var audio = await _context.AudioFiles.FindAsync(id);
+        AudioFile? audio = await _context.AudioFiles.FindAsync(id);
         if (audio == null || audio.UserId != _userManager.GetUserId(User))
             return NotFound();
 
@@ -144,25 +132,26 @@ public class AudioController : Controller
 
 
     [AllowAnonymous]
-    public IActionResult Stream(int id)
+    public async Task<IActionResult> Stream(int id)
     {
-        var file = _context.AudioFiles.Find(id);
+        AudioFile? file = _context.AudioFiles.Find(id);
         if (file == null) return NotFound();
-
-        var path = Path.Combine(_environment.WebRootPath, "uploads", file.FileName);
-        var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+        file.PlayCount++;
+        await _context.SaveChangesAsync();
+        string path = Path.Combine(_environment.WebRootPath, "uploads", file.FileName);
+        FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
         return File(stream, "audio/mpeg");
     }
-    [HttpPost]
+
     [HttpPost]
     public IActionResult Like(int id)
     {
-        var audio = _context.AudioFiles.Find(id);
+        AudioFile? audio = _context.AudioFiles.Find(id);
         if (audio == null) return NotFound();
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var existingVote = _context.UserVotes
+        UserVote? existingVote = _context.UserVotes
             .FirstOrDefault(v => v.UserId == userId && v.AudioFileId == id);
 
         if (existingVote == null)
@@ -189,12 +178,12 @@ public class AudioController : Controller
     [HttpPost]
     public IActionResult Dislike(int id)
     {
-        var audio = _context.AudioFiles.Find(id);
+        AudioFile? audio = _context.AudioFiles.Find(id);
         if (audio == null) return NotFound();
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var existingVote = _context.UserVotes
+        UserVote? existingVote = _context.UserVotes
             .FirstOrDefault(v => v.UserId == userId && v.AudioFileId == id);
 
         if (existingVote == null)
@@ -259,6 +248,20 @@ public class AudioController : Controller
 
         return View("SearchResults", pagedResult);
     }
+    public async Task<IActionResult> Download(int id)
+    {
+        var audio = await _context.AudioFiles.FindAsync(id);
+        if (audio == null)
+            return NotFound();
+
+        audio.DownloadCount++;
+        await _context.SaveChangesAsync();
+
+        var path = Path.Combine(_environment.WebRootPath, "uploads", audio.FileName);
+        var fileBytes = await System.IO.File.ReadAllBytesAsync(path);
+        return File(fileBytes, "application/octet-stream", audio.OriginalName);
+    }
+
 
 
 }
