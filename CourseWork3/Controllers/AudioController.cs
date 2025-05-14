@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using X.PagedList.Extensions;
 
 [Authorize]
 public class AudioController : Controller
@@ -173,17 +174,19 @@ public class AudioController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public IActionResult Search()
     {
         return View();
     }
 
+    [AllowAnonymous]
     [HttpPost]
-    public IActionResult Search(string query, string category)
+    public IActionResult Search(string query, string category, int page = 1, int pageSize = 15)
     {
         if (string.IsNullOrWhiteSpace(query) || string.IsNullOrWhiteSpace(category))
-            return View("SearchResults", new List<AudioFile>());
+            return View("SearchResults", Enumerable.Empty<AudioFile>().ToPagedList(page, pageSize));
 
         IQueryable<AudioFile> result = _context.AudioFiles.Include(a => a.User);
 
@@ -206,7 +209,12 @@ public class AudioController : Controller
                 break;
         }
 
-        return View("SearchResults", result.ToList());
+        var pagedResult = result.OrderByDescending(a => a.Id).ToPagedList(page, pageSize);
+        ViewBag.Query = query;
+        ViewBag.Category = category;
+
+        return View("SearchResults", pagedResult);
     }
+
 
 }

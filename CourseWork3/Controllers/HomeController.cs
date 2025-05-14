@@ -2,6 +2,7 @@ using CourseWork3.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using X.PagedList.Extensions;
 
 namespace CourseWork3.Controllers;
 
@@ -15,14 +16,20 @@ public class HomeController : Controller
     }
 
     //[Authorize]
-    public IActionResult Index()
+    public async Task<IActionResult> IndexAsync(int? page)
     {
+        int pageSize = 15;
+        int pageNumber = page ?? 1;
+
         var audioFiles = _context.AudioFiles
             .Include(a => a.User)
-            .OrderByDescending(a => a.UploadDate)
-            .ToList();
+            .OrderByDescending(a => a.UploadDate);
 
-        return View(audioFiles);
+        var pagedList = audioFiles.ToPagedList(pageNumber, pageSize);
+
+
+
+        return View(pagedList);
     }
 
     public IActionResult Privacy()

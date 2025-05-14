@@ -1,4 +1,4 @@
-﻿@model List<CourseWork3.Models.AudioFile>
+﻿@model X.PagedList.IPagedList<CourseWork3.Models.AudioFile>
 
 @{
     ViewData["Title"] = "Результаты поиска";
@@ -36,4 +36,27 @@ else
                     </li>
         }
         </ul>
+
+        <div class="pagination-container mt-4">
+                <ul class="pagination justify-content-center">
+            @if (Model.HasPreviousPage)
+            {
+                                        <li class="page-item">
+                                            <a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber - 1 })">« Назад</a>
+                                        </li>
+            }
+            @for (var i = 1; i <= Model.PageCount; i++)
+            {
+                                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                            <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                                        </li>
+            }
+            @if (Model.HasNextPage)
+            {
+                                        <li class="page-item">
+                                            <a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber + 1 })">Вперед »</a>
+                                        </li>
+            }
+                        </ul>
+        </div>
 }
