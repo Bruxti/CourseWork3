@@ -262,6 +262,19 @@ public class AudioController : Controller
         return File(fileBytes, "application/octet-stream", audio.OriginalName);
     }
 
+    [AllowAnonymous]
+    public async Task<IActionResult> Details(int id)
+    {
+        var audio = await _context.AudioFiles
+            .Include(a => a.User)
+            .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (audio == null)
+            return NotFound();
+
+        return View(audio);
+    }
+
 
 
 }

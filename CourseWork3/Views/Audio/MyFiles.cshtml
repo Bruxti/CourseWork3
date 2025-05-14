@@ -45,9 +45,11 @@ else
                         </audio>
                 @if (audio.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
                 {
-                <a class="btn btn-warning btn-sm mt-2" asp-action="Edit" asp-route-id="@audio.Id">Редактировать</a>
+                <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@audio.Id">Редактировать</a>
                 }
-    
+                <button class="btn btn-outline-primary btn-sm" 
+                onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = audio.Id }, Context.Request.Scheme)')">Копировать ссылку</button>
+                        <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = audio.Id })">⬇ Скачать</a>
                         <form asp-action="Delete" method="post" style="display:inline;">
                             <input type="hidden" name="id" value="@audio.Id" />
                             <button type="submit" class="btn btn-danger">Удалить</button>
@@ -56,3 +58,8 @@ else
         }
         </ul>
 }
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+    }
+</script>

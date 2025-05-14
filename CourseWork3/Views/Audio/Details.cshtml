@@ -1,0 +1,57 @@
+﻿@model CourseWork3.Models.AudioFile
+
+@{
+    ViewData["Title"] = "Аудиозапись";
+    var link = Url.Action("Details", "Audio", new { id = Model.Id }, Context.Request.Scheme);
+}
+
+<h2>@Model.Title</h2>
+<!--            +++++++++++++++++++++         -->
+@{
+var displayData = new List<(string Label, string? Value)>
+    {
+        ("Название", Model.Title),
+        ("Оригинальное имя", Model.OriginalName),
+        ("Автор", Model.Author),
+        ("Жанр", Model.Genre),
+        ("Опубликовал", Model.User?.DisplayName)
+    };
+                    
+    @foreach (var item in displayData)
+    {
+            <p>
+                <strong>@item.Label:</strong>
+            @if (!string.IsNullOrWhiteSpace(item.Value))
+            {
+                @item.Value
+            }
+            else
+            {
+                        <em>Неизвестно</em>
+            }
+            </p>
+    }}
+
+
+<audio controls style="width:100%; max-width:400px;">
+    <source src="@Url.Action("Stream", "Audio", new { id = Model.Id })" type="audio/mpeg" />
+    Ваш браузер не поддерживает аудио.
+</audio>
+
+<div class="mt-3">
+    <button class="btn btn-outline-primary btn-sm" onclick="copyLink()">Скопировать ссылку</button>
+    <input type="text" id="shareLink" value="@link" readonly style="position:absolute; left:-9999px;" />
+
+</div>
+
+@section Scripts {
+        <script>
+            function copyLink() {
+                const link = '@link';
+                navigator.clipboard.writeText(link).then(() => {          
+                }).catch(() => {
+                });
+            }
+        </script>
+}
+<!--            -----------------------         -->
