@@ -19,11 +19,16 @@ else
                     var displayData = new List<(string Label, string? Value)>
     {
         ("Название", audio.Title),
-        ("Оригинальное имя", audio.OriginalName),
-        ("Автор", audio.Author),
-        ("Жанр", audio.Genre),
-        ("Опубликовал", audio.User?.DisplayName)
+        //("IsMus", audio.IsMusicOnly.ToString()),
+        ("Оригинальное имя", audio.OriginalName)
     };
+
+                    if (audio.IsMusicOnly)
+                    {
+                        displayData.Add(("Автор", audio.Author));
+                        displayData.Add(("Жанр", audio.Genre));
+                        displayData.Add(("Опубликовал", audio.User?.DisplayName));
+                    }
                 }
                 @foreach (var item in displayData)
                 {

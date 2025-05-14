@@ -8,29 +8,34 @@
 <h2>@Model.Title</h2>
 <!--            +++++++++++++++++++++         -->
 @{
-var displayData = new List<(string Label, string? Value)>
+    var displayData = new List<(string Label, string? Value)>
     {
         ("Название", Model.Title),
-        ("Оригинальное имя", Model.OriginalName),
-        ("Автор", Model.Author),
-        ("Жанр", Model.Genre),
-        ("Опубликовал", Model.User?.DisplayName)
+        //("IsMus", Model.IsMusicOnly.ToString()),
+        ("Оригинальное имя", Model.OriginalName)
     };
-                    
-    @foreach (var item in displayData)
+
+    if (Model.IsMusicOnly)
     {
-            <p>
-                <strong>@item.Label:</strong>
-            @if (!string.IsNullOrWhiteSpace(item.Value))
-            {
-                @item.Value
-            }
-            else
-            {
-                        <em>Неизвестно</em>
-            }
-            </p>
-    }}
+        displayData.Add(("Автор", Model.Author));
+        displayData.Add(("Жанр", Model.Genre));
+        displayData.Add(("Опубликовал", Model.User?.DisplayName));
+    }
+}
+@foreach (var item in displayData)
+{
+                                <p>
+                                    <strong>@item.Label:</strong>
+        @if (!string.IsNullOrWhiteSpace(item.Value))
+        {
+            @item.Value
+        }
+        else
+        {
+                                                    <em>Неизвестно</em>
+        }
+                                </p>
+}}
 
 
 <audio controls style="width:100%; max-width:400px;">

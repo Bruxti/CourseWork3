@@ -29,6 +29,7 @@ public class AudioController : Controller
     [HttpPost]
     public async Task<IActionResult> Upload(string title, string genre, string author, IFormFile audioFile)
     {
+        bool isMusicOnly = Request.Form["isMusicOnly"] == "on";
         if (audioFile != null && audioFile.Length > 0)
         {
             string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
@@ -48,12 +49,13 @@ public class AudioController : Controller
             AudioFile audio = new AudioFile
             {
                 Title = title,
-                Genre = genre,
-                Author = author,
+                Genre = isMusicOnly ? null : genre,
+                Author = isMusicOnly ? null : author,
                 FileName = fileName,
                 OriginalName = audioFile.FileName,
                 UserId = userId,
-                UploadDate = DateTime.Now
+                UploadDate = DateTime.Now,
+                IsMusicOnly = isMusicOnly
             };
 
             _context.AudioFiles.Add(audio);
@@ -127,9 +129,6 @@ public class AudioController : Controller
 
         return RedirectToAction("MyFiles");
     }
-
-
-
 
     [AllowAnonymous]
     public async Task<IActionResult> Stream(int id)

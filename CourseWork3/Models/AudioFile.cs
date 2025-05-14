@@ -27,5 +27,9 @@ namespace CourseWork3.Models
 
         public int PlayCount { get; set; } = 0;
         public int DownloadCount { get; set; } = 0;
+        public bool IsMusicOnly { get; set; }
+
     }
 }
+/*  dotnet ef migrations add //changeNAME// --project CourseWork3 
+dotnet ef database update --project CourseWork3*/
