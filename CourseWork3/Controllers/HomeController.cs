@@ -15,7 +15,6 @@ public class HomeController : Controller
         _context = context;
     }
 
-    //[Authorize]
     public async Task<IActionResult> IndexAsync(int? page)
     {
         int pageSize = 15;

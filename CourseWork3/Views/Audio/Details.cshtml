@@ -6,13 +6,11 @@
 }
 
 <h2>@Model.Title</h2>
-<!--            +++++++++++++++++++++         -->
 @{
 
 	var displayData = new List<(string Label, string? Value)>
 	{
 		("Название", Model.Title),
-		//("IsMus", Model.IsMusic.ToString()),
 		("Оригинальное имя", Model.OriginalName)
 	};
 
