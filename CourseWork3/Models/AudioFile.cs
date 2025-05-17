@@ -27,7 +27,7 @@ namespace CourseWork3.Models
 
         public int PlayCount { get; set; } = 0;
         public int DownloadCount { get; set; } = 0;
-        public bool IsMusicOnly { get; set; }
+        public bool IsMusic { get; set; }
 
     }
 }

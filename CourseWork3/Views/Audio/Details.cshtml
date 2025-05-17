@@ -11,17 +11,19 @@
 	var displayData = new List<(string Label, string? Value)>
 	{
 		("Название", Model.Title),
-		//("IsMus", Model.IsMusicOnly.ToString()),
+		//("IsMus", Model.IsMusic.ToString()),
 		("Оригинальное имя", Model.OriginalName)
 	};
 
-	if (Model.IsMusicOnly)
+	if (Model.IsMusic)
 	{
 		displayData.Add(("Автор", Model.Author));
 		displayData.Add(("Жанр", Model.Genre));
 		displayData.Add(("Опубликовал", Model.User?.DisplayName));
 	}
 }
+<li class="audio-item">
+
 @foreach (var item in displayData)
 {
 	<p>
@@ -36,19 +38,24 @@
 		}
 	</p>
 }
-}
 
 
-<audio controls style="width:100%; max-width:400px;">
-	<source src="@Url.Action("Stream", "Audio", new { id = Model.Id })" type="audio/mpeg"/>
-	Ваш браузер не поддерживает аудио.
-</audio>
+
+	<audio id="player-@Model.Id"
+		   controls
+		   preload="none"
+		   src="@Url.Action("Stream", "Audio", new { id = Model.Id })"
+		   class="w-100"
+		   style="max-width: 400px;">
+		Ваш браузер не поддерживает воспроизведение аудио.
+	</audio>
 
 <div class="mt-3">
 	<button class="btn btn-outline-primary btn-sm" onclick="copyLink()">Скопировать ссылку</button>
 	<input type="text" id="shareLink" value="@link" readonly style="position:absolute; left:-9999px;"/>
 
 </div>
+</li>
 
 @section Scripts {
 	<script>
@@ -60,5 +67,40 @@
             }
         </script>
 }
+<style>
+	.audio-item {
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		padding: 15px;
+		margin-bottom: 20px;
+		background-color: #f7f7f7;
+	}
+
+		.audio-item::marker {
+			display: none;
+		}
+
+
+		.audio-item p {
+			margin: 5px 0;
+		}
+
+	.audio-actions {
+		margin-top: 10px;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+
+		.audio-actions form,
+		.audio-actions a,
+		.audio-actions button {
+			display: inline-block;
+		}
+
+	.audio-player {
+		margin: 10px 0;
+	}
+</style>
 
 <!--            -----------------------         -->

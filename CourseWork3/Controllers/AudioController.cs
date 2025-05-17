@@ -29,7 +29,7 @@ public class AudioController : Controller
     [HttpPost]
     public async Task<IActionResult> Upload(string title, string genre, string author, IFormFile audioFile)
     {
-        bool isMusicOnly = Request.Form["isMusicOnly"] == "on";
+        bool IsMusic = Request.Form["IsMusic"] == "on";
 
         if (audioFile != null && audioFile.Length > 0)
         {
@@ -50,13 +50,13 @@ public class AudioController : Controller
             AudioFile audio = new AudioFile
             {
                 Title = title,
-                Genre = isMusicOnly ? genre : null,
-                Author = isMusicOnly ? author : null,
+                Genre = IsMusic ? genre : null,
+                Author = IsMusic ? author : null,
                 FileName = fileName,
                 OriginalName = audioFile.FileName,
                 UserId = userId,
                 UploadDate = DateTime.Now,
-                IsMusicOnly = isMusicOnly
+                IsMusic = IsMusic
             };
 
             _context.AudioFiles.Add(audio);
@@ -137,13 +137,17 @@ public class AudioController : Controller
     [AllowAnonymous]
     public IActionResult Stream(int id)
     {
-        AudioFile? file = _context.AudioFiles.Find(id);
+        var file = _context.AudioFiles.Find(id);
         if (file == null) return NotFound();
 
-        string path = Path.Combine(_environment.WebRootPath, "uploads", file.FileName);
-        FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
-        return File(stream, "audio/mpeg");
+        var path = Path.Combine(_environment.WebRootPath, "uploads", file.FileName);
+        if (!System.IO.File.Exists(path))
+            return NotFound($"Файл не найден: {path}");
+
+        var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+        return File(stream, "audio/mpeg", enableRangeProcessing: true);
     }
+
 
     [HttpPost]
     [AllowAnonymous]
@@ -244,7 +248,7 @@ public class AudioController : Controller
                 break;
             case "genre":
                 result = result.Where(a => a.Genre != null && a.Genre.ToLower().Contains(query.ToLower()));
-                result = result.Where(a => !a.IsMusicOnly);
+                result = result.Where(a => !a.IsMusic);
                 break;
             case "user":
                 result = result.Where(a => a.User != null && a.User.DisplayName != null && a.User.DisplayName.ToLower().Contains(query.ToLower()));

@@ -12,11 +12,12 @@
 			<hr/>
 			<div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
 
-			<div class="form-group mb-3">
-				<input asp-for="Input.DisplayName" class="form-control" autocomplete="nickname" aria-required="true" placeholder="name" />
+			<div class="form-floating mb-3">
+				<input asp-for="Input.DisplayName" class="form-control" autocomplete="nickname" aria-required="true" placeholder="Никнейм" />
 				<label asp-for="Input.DisplayName">Никнейм</label>
 				<span asp-validation-for="Input.DisplayName" class="text-danger"></span>
 			</div>
+
 
 			<div class="form-floating mb-3">
 				<input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com"/>

@@ -6,8 +6,8 @@
 
 <form asp-action="Upload" method="post" enctype="multipart/form-data">
 	<div class="form-check">
-		<input type="checkbox" class="form-check-input" id="isMusicOnly" name="isMusicOnly" checked />
-		<label class="form-check-label" for="isMusicOnly">Музыкальный трек?</label>
+		<input type="checkbox" class="form-check-input" id="IsMusic" name="IsMusic" checked />
+		<label class="form-check-label" for="IsMusic">Музыкальный трек?</label>
 	</div>
 
 	<div>
@@ -45,7 +45,7 @@
 @section Scripts {
 	<script>
 		document.addEventListener("DOMContentLoaded", function () {
-			const checkbox = document.getElementById('isMusicOnly');
+			const checkbox = document.getElementById('IsMusic');
 			const genreField = document.querySelector('input[name="genre"]');
 			const authorField = document.querySelector('input[name="author"]');
 			const metadataFields = document.getElementById('metadataFields');

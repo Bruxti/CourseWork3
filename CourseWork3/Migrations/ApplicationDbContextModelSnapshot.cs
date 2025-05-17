@@ -114,7 +114,7 @@ namespace CourseWork3.Migrations
                     b.Property<string>("Genre")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsMusicOnly")
+                    b.Property<bool>("IsMusic")
                         .HasColumnType("bit");
 
                     b.Property<int>("Likes")
