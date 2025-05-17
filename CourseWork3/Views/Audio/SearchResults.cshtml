@@ -67,13 +67,11 @@ else
 					</form>
 					<form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@audio.Id" style="display:inline">
 						<button type="submit" class="btn btn-outline-danger btn-sm">👎 @audio.Dislikes</button>
-						<!--            +++++++++++++++++++++         -->
 					</form>
 					<button class="btn btn-outline-primary btn-sm"
 							onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = audio.Id }, Context.Request.Scheme)')">
 						Копировать ссылку
 					</button>
-					<!--            -----------------------         -->
 					<a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = audio.Id })">⬇ Скачать</a>
 
 				</div>
