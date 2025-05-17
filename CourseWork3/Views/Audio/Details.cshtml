@@ -8,6 +8,7 @@
 <h2>@Model.Title</h2>
 <!--            +++++++++++++++++++++         -->
 @{
+
 	var displayData = new List<(string Label, string? Value)>
 	{
 		("Название", Model.Title),
@@ -22,7 +23,7 @@
 		displayData.Add(("Опубликовал", Model.User?.DisplayName));
 	}
 }
-<li class="audio-item">
+<div class="audio-item">
 
 @foreach (var item in displayData)
 {
@@ -50,12 +51,23 @@
 		Ваш браузер не поддерживает воспроизведение аудио.
 	</audio>
 
-<div class="mt-3">
-	<button class="btn btn-outline-primary btn-sm" onclick="copyLink()">Скопировать ссылку</button>
-	<input type="text" id="shareLink" value="@link" readonly style="position:absolute; left:-9999px;"/>
+	<div class="mt-2">
+		<form method="post" asp-controller="Audio" asp-action="Like" asp-route-id="@Model.Id" style="display:inline">
+			<button type="submit" class="btn btn-outline-success btn-sm">👍 @Model.Likes</button>
+		</form>
+		<form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@Model.Id" style="display:inline">
+			<button type="submit" class="btn btn-outline-danger btn-sm">👎 @Model.Dislikes</button>
+			<!--            +++++++++++++++++++++         -->
+		</form>
+		<button class="btn btn-outline-primary btn-sm"
+				onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = Model.Id }, Context.Request.Scheme)')">
+			Копировать ссылку
+		</button>
+		<!--            -----------------------         -->
+		<a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = Model.Id })">⬇ Скачать</a>
 
+	</div>
 </div>
-</li>
 
 @section Scripts {
 	<script>
