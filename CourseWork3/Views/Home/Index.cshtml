@@ -21,9 +21,9 @@
                 <div class="audio-item">
                     @{
                         List<(string Label, string? Value)> displayData = new List<(string Label, string? Value)>
-            {
-            ("Название", audio.Title)
-            };
+                        {
+                            ("Название", audio.Title)
+                        };
 
                         if (audio.IsMusic)
                         {
@@ -78,7 +78,6 @@
                     <p><strong>Прослушиваний:</strong> @audio.PlayCount</p>
                     <p><strong>Скачиваний:</strong> @audio.DownloadCount</p>
 
-                    <div class="mt-2 audio-actions">
                         <form method="post"
                               asp-controller="Audio"
                               asp-action="Like"
@@ -109,7 +108,6 @@
                            href="@Url.Action("Download", "Audio", new { id = audio.Id })">
                             ⬇ Скачать
                         </a>
-                    </div>
                 </div>
             }
         </div>

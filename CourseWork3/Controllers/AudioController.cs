@@ -50,12 +50,12 @@ public class AudioController : Controller
         string fileName = $"{Guid.NewGuid()}{Path.GetExtension(audioFile.FileName)}";
         string filePath = Path.Combine(uploadsFolder, fileName);
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        using (FileStream stream = new FileStream(filePath, FileMode.Create))
         {
             await audioFile.CopyToAsync(stream);
         }
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         AudioFile? audio = new AudioFile
         {
             Title = title,
@@ -288,7 +288,7 @@ public class AudioController : Controller
                 break;
         }
 
-        var pagedResult = result
+        X.PagedList.IPagedList<AudioFile> pagedResult = result
             .OrderByDescending(a => a.Id)
             .ToPagedList(page, pageSize);
 
@@ -329,7 +329,7 @@ public class AudioController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> UserProfile(string id)
     {
-        var user = await _userManager.Users
+        ApplicationUser? user = await _userManager.Users
             .Include(u => u.AudioFiles)
             .FirstOrDefaultAsync(u => u.Id == id);
 
