@@ -5,49 +5,48 @@
 <h2>Загрузить аудиофайл</h2>
 
 <form asp-action="Upload" method="post" enctype="multipart/form-data">
-	<div class="form-check">
+	<div class="form-check mb-3">
 		<input type="checkbox" class="form-check-input" id="IsMusic" name="IsMusic" checked />
 		<label class="form-check-label" for="IsMusic">Музыкальный трек?</label>
 	</div>
 
-	<div>
-		<label>Название:</label>
-		<input type="text" name="title" required />
+	<div class="form-group mb-3">
+		<label for="title">Название:</label>
+		<input type="text" id="title" name="title" class="form-control" required />
 	</div>
 
 	<div id="metadataFields">
-		<div class="form-group">
-			<label for="genre">Жанр</label>
+		<div class="form-group mb-3">
+			<label for="genre">Жанр:</label>
 			<input type="text" class="form-control" name="genre" id="genre" />
 		</div>
-		<div class="form-group">
-			<label for="author">Автор</label>
+		<div class="form-group mb-3">
+			<label for="author">Автор:</label>
 			<input type="text" class="form-control" name="author" id="author" />
 		</div>
 	</div>
 
-	<div>
-		<label>Файл (MP3):</label>
-		<input type="file" name="audioFile" accept=".mp3" required />
+	<div class="form-group mb-3">
+		<label for="audioFile">Файл (MP3):</label>
+		<input type="file" id="audioFile" name="audioFile" accept=".mp3" class="form-control" required />
 	</div>
 
-	<button type="submit">Загрузить</button>
-
+	<button type="submit" class="btn btn-primary">Загрузить</button>
 </form>
 
 @if (!ViewData.ModelState.IsValid)
 {
-	<p style="color: red;">
+	<div class="alert alert-danger mt-3">
 		@ViewData.ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
-	</p>
+	</div>
 }
 
 @section Scripts {
 	<script>
 		document.addEventListener("DOMContentLoaded", function () {
 			const checkbox = document.getElementById('IsMusic');
-			const genreField = document.querySelector('input[name="genre"]');
-			const authorField = document.querySelector('input[name="author"]');
+			const genreField = document.getElementById('genre');
+			const authorField = document.getElementById('author');
 			const metadataFields = document.getElementById('metadataFields');
 
 			function updateFields() {

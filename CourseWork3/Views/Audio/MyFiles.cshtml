@@ -1,111 +1,122 @@
 ﻿@using System.Security.Claims
 @model List<AudioFile>
+
 @{
-	ViewData["Title"] = "Мои аудиофайлы";
+    ViewData["Title"] = "Мои аудиофайлы";
 }
 
 <h2>Мои загруженные файлы</h2>
 
 @if (!Model.Any())
 {
-	<p>Файлы не найдены.</p>
+    <p>Файлы не найдены.</p>
 }
 else
 {
-	<div>
-		@foreach (var audio in Model)
-		{
-			<div class="audio-item">
-				@{
-					var displayData = new List<(string Label, string? Value)>
-					{
-						("Название", audio.Title),
-					};
+    <div>
+        @foreach (AudioFile audio in Model)
+        {
+            <div class="audio-item">
+                @{
+                    List<(string Label, string? Value)> displayData = new List<(string Label, string? Value)>
+        {
+        ("Название", audio.Title)
+        };
 
-					if (audio.IsMusic)
-					{
-						displayData.Add(("Автор", audio.Author));
-						displayData.Add(("Жанр", audio.Genre));
-						displayData.Add(("Опубликовал", audio.User?.DisplayName));
-					}
-				}
-				@foreach (var item in displayData)
-				{
-					<p>
-						<strong>@item.Label:</strong>
-						@if (!string.IsNullOrWhiteSpace(item.Value))
-						{
-							@item.Value
-						}
-						else
-						{
-							<em>Неизвестно</em>
-						}
-					</p>
-				}
-				<audio id="player-@audio.Id"
-					   controls
-					   preload="none"
-					   src="@Url.Action("Stream", "Audio", new { id = audio.Id })"
-					   class="w-100"
-					   style="max-width: 400px;">
-					Ваш браузер не поддерживает воспроизведение аудио.
-				</audio>
-				@if (audio.UserId == User.FindFirst(ClaimTypes.NameIdentifier)?.Value)
-				{
-					<a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@audio.Id">Редактировать</a>
-				}
-				<button class="btn btn-outline-primary btn-sm"
-				        onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = audio.Id }, Context.Request.Scheme)')">
-					Копировать ссылку
-				</button>
-				<a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = audio.Id })">⬇ Скачать</a>
-				<form asp-action="Delete" method="post" style="display:inline;">
-					<input type="hidden" name="id" value="@audio.Id"/>
-					<button type="submit" class="btn btn-danger">Удалить</button>
-				</form>
-			</div>
-		}
-	</div>
+                    if (audio.IsMusic)
+                    {
+                        displayData.Add(("Автор", audio.Author));
+                        displayData.Add(("Жанр", audio.Genre));
+                        displayData.Add(("Опубликовал", audio.User?.DisplayName));
+                    }
+                }
+
+                @foreach ((string Label, string? Value) item in displayData)
+                {
+                    <p>
+                        <strong>@item.Label:</strong>
+                        @if (!string.IsNullOrWhiteSpace(item.Value))
+                        {
+                            @item.Value
+                        }
+                        else
+                        {
+                            <em>Неизвестно</em>
+                        }
+                    </p>
+                }
+
+                <audio id="player-@audio.Id"
+                       controls
+                       preload="none"
+                       src="@Url.Action("Stream", "Audio", new { id = audio.Id })"
+                       class="w-100"
+                       style="max-width: 400px;">
+                    Ваш браузер не поддерживает воспроизведение аудио.
+                </audio>
+
+                @if (audio.UserId == User.FindFirst(ClaimTypes.NameIdentifier)?.Value)
+                {
+                    <a class="btn btn-warning btn-sm"
+                       asp-action="Edit"
+                       asp-route-id="@audio.Id">
+                        Редактировать
+                    </a>
+                }
+
+                <button type="button"
+                        class="btn btn-outline-primary btn-sm"
+                        onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = audio.Id }, Context.Request.Scheme)')">
+                    Копировать ссылку
+                </button>
+
+                <a class="btn btn-outline-primary btn-sm"
+                   href="@Url.Action("Download", "Audio", new { id = audio.Id })">
+                    ⬇ Скачать
+                </a>
+
+                <form asp-action="Delete"
+                      method="post"
+                      style="display: inline;">
+                    <input type="hidden" name="id" value="@audio.Id" />
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        }
+    </div>
 }
-<script>
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text);
-    }
-</script>
+
+@section Scripts {
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+        }
+    </script>
+}
 
 <style>
-	.audio-item {
-		border: 1px solid #ccc;
-		border-radius: 6px;
-		padding: 15px;
-		margin-bottom: 20px;
-		background-color: #f7f7f7;
-	}
+    .audio-item {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #f7f7f7;
+    }
 
-		.audio-item::marker {
-			display: none;
-		}
+        .audio-item p {
+            margin: 5px 0;
+        }
 
+    .audio-actions {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 
-		.audio-item p {
-			margin: 5px 0;
-		}
-
-	.audio-actions {
-		margin-top: 10px;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 10px;
-	}
-
-		.audio-actions form,
-		.audio-actions a,
-		.audio-actions button {
-			display: inline-block;
-		}
-
-	.audio-player {
-		margin: 10px 0;
-	}
+        .audio-actions form,
+        .audio-actions a,
+        .audio-actions button {
+            display: inline-block;
+        }
 </style>

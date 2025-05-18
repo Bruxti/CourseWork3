@@ -114,30 +114,26 @@ public class AudioController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(
-        int id,
-        string title,
-        string genre,
-        string author,
-        string originalName)
+    public async Task<IActionResult> Edit(int id, string title, string genre, string author)
     {
         AudioFile? audio = await _context.AudioFiles.FindAsync(id);
         if (audio == null || audio.UserId != _userManager.GetUserId(User))
             return NotFound();
 
-        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(originalName))
+        if (string.IsNullOrWhiteSpace(title))
         {
-            ModelState.AddModelError("", "Название и оригинальное имя обязательны.");
+            ModelState.AddModelError("", "Название обязательно.");
             return View(audio);
         }
 
         audio.Title = title;
         audio.Genre = genre;
         audio.Author = author;
-        audio.OriginalName = originalName;
 
         await _context.SaveChangesAsync();
+
         return RedirectToAction("MyFiles");
     }
 

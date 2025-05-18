@@ -2,120 +2,158 @@
 @using Microsoft.AspNetCore.Identity
 
 @{
-	ViewData["Title"] = "Главная";
+    ViewData["Title"] = "Главная";
 }
 
 <div class="text-center">
 
-	@if (Model == null || !Model.Any())
-	{
-		<p>Нет загруженных файлов.</p>
-	}
-	else
-	{
-		<h3>Доступные аудиофайлы</h3>
-		<ul class="list-unstyled">
-			@foreach (var audio in Model)
-			{
-				<li class="audio-item">
-					@{
-						var displayData = new List<(string Label, string? Value)>
-						{
-							("Название", audio.Title)
-						};
+    @if (Model == null || !Model.Any())
+    {
+        <p>Нет загруженных файлов.</p>
+    }
+    else
+    {
+        <h3>Доступные аудиофайлы</h3>
 
-						if (audio.IsMusic)
-						{
-							displayData.Add(("Автор", audio.Author));
-							displayData.Add(("Жанр", audio.Genre));
-						}
-						var uploaderDisplay = !string.IsNullOrWhiteSpace(audio.User?.DisplayName) ? audio.User.DisplayName : "Неизвестный пользователь";
-					}
-					@foreach (var item in displayData)
-					{
-						<p>
-							<strong>@item.Label:</strong>
-							@if (!string.IsNullOrWhiteSpace(item.Value))
-							{
-								@item.Value
-							}
-							else
-							{
-								<em>Неизвестно</em>
-							}
-						</p>
-					}
-					@if (!string.IsNullOrWhiteSpace(audio.User?.Id))
-					{
-						<p>
-							<strong>Опубликовал:</strong>
-							<a asp-action="UserProfile" asp-controller="Audio" asp-route-id="@audio.User.Id">
-								@uploaderDisplay
-							</a>
-						</p>
-					}
-					<audio id="player-@audio.Id"
-						   controls
-						   preload="none"
-						   src="@Url.Action("Stream", "Audio", new { id = audio.Id })"
-						   class="w-100"
-						   style="max-width: 400px;">
-						Ваш браузер не поддерживает воспроизведение аудио.
-					</audio>
+        <div>
+            @foreach (AudioFile audio in Model)
+            {
+                <div class="audio-item">
+                    @{
+                        List<(string Label, string? Value)> displayData = new List<(string Label, string? Value)>
+            {
+            ("Название", audio.Title)
+            };
+
+                        if (audio.IsMusic)
+                        {
+                            displayData.Add(("Автор", audio.Author));
+                            displayData.Add(("Жанр", audio.Genre));
+                        }
+
+                        bool hasUploader = !string.IsNullOrWhiteSpace(audio.User?.Id);
+                        string uploaderDisplay = hasUploader
+                        ? (string.IsNullOrWhiteSpace(audio.User.DisplayName)
+                        ? "Неизвестный пользователь"
+                        : audio.User.DisplayName)
+                        : string.Empty;
+                    }
+
+                    @foreach ((string Label, string? Value) item in displayData)
+                    {
+                        <p>
+                            <strong>@item.Label:</strong>
+                            @if (!string.IsNullOrWhiteSpace(item.Value))
+                            {
+                                @item.Value
+                            }
+                            else
+                            {
+                                <em>Неизвестно</em>
+                            }
+                        </p>
+                    }
+
+                    @if (hasUploader)
+                    {
+                        <p>
+                            <strong>Опубликовал:</strong>
+                            <a asp-controller="Audio"
+                               asp-action="UserProfile"
+                               asp-route-id="@audio.User.Id">
+                                @uploaderDisplay
+                            </a>
+                        </p>
+                    }
+
+                    <audio id="player-@audio.Id"
+                           controls
+                           preload="none"
+                           src="@Url.Action("Stream", "Audio", new { id = audio.Id })"
+                           class="w-100"
+                           style="max-width: 400px;">
+                        Ваш браузер не поддерживает воспроизведение аудио.
+                    </audio>
+
+                    <p><strong>Прослушиваний:</strong> @audio.PlayCount</p>
+                    <p><strong>Скачиваний:</strong> @audio.DownloadCount</p>
+
+                    <div class="mt-2 audio-actions">
+                        <form method="post"
+                              asp-controller="Audio"
+                              asp-action="Like"
+                              asp-route-id="@audio.Id"
+                              style="display: inline;">
+                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                👍 @audio.Likes
+                            </button>
+                        </form>
+
+                        <form method="post"
+                              asp-controller="Audio"
+                              asp-action="Dislike"
+                              asp-route-id="@audio.Id"
+                              style="display: inline;">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                👎 @audio.Dislikes
+                            </button>
+                        </form>
+
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm"
+                                onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = audio.Id }, Context.Request.Scheme)')">
+                            Копировать ссылку
+                        </button>
+
+                        <a class="btn btn-outline-primary btn-sm"
+                           href="@Url.Action("Download", "Audio", new { id = audio.Id })">
+                            ⬇ Скачать
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
 
 
+        <div class="pagination-container mt-4">
+            <ul class="pagination justify-content-center">
+                @if (Model.HasPreviousPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-page="@(Model.PageNumber - 1)">
+                            « Назад
+                        </a>
+                    </li>
+                }
+                @for (int i = 1; i <= Model.PageCount; i++)
+                {
+                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-page="@i">
+                            @i
+                        </a>
+                    </li>
+                }
+                @if (Model.HasNextPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-page="@(Model.PageNumber + 1)">
+                            Вперед »
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</div>
 
-					<p>
-						<strong>Прослушиваний:</strong> @audio.PlayCount
-					</p>
-					<p>
-						<strong>Скачиваний:</strong> @audio.DownloadCount
-					</p>
-
-					<div class="mt-2">
-						<form method="post" asp-controller="Audio" asp-action="Like" asp-route-id="@audio.Id" style="display:inline">
-							<button type="submit" class="btn btn-outline-success btn-sm">👍 @audio.Likes</button>
-						</form>
-						<form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@audio.Id" style="display:inline">
-							<button type="submit" class="btn btn-outline-danger btn-sm">👎 @audio.Dislikes</button>
-							<!--            +++++++++++++++++++++         -->
-						</form>
-						<button class="btn btn-outline-primary btn-sm"
-						        onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = audio.Id }, Context.Request.Scheme)')">
-							Копировать ссылку
-						</button>
-						<!--            -----------------------         -->
-						<a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = audio.Id })">⬇ Скачать</a>
-
-					</div>
-
-				</li>
-			}
-		</ul>
-		<div class="pagination-container mt-4">
-			<ul class="pagination justify-content-center">
-				@if (Model.HasPreviousPage)
-				{
-					<li class="page-item">
-						<a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber - 1 })">« Назад</a>
-					</li>
-				}
-				@for (var i = 1; i <= Model.PageCount; i++)
-				{
-					<li class="page-item @(i == Model.PageNumber ? "active" : "")">
-						<a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
-					</li>
-				}
-				@if (Model.HasNextPage)
-				{
-					<li class="page-item">
-						<a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber + 1 })">Вперед »</a>
-					</li>
-				}
-			</ul>
-		</div>
-		@section Scripts {
-			<script>
+@section Scripts {
+    <script>
         document.addEventListener("DOMContentLoaded", function () {
             const players = document.querySelectorAll('audio[id^="player-"]');
 
@@ -123,58 +161,44 @@
                 let playRegistered = false;
                 const id = player.id.replace("player-", "");
 
-                player.addEventListener('play', function () {
+                player.addEventListener("play", function () {
                     if (playRegistered) return;
                     playRegistered = true;
 
-                    fetch(`/Audio/RegisterPlay/${id}`, { method: 'POST' });
+                    fetch(`/Audio/RegisterPlay/${id}`, { method: "POST" });
                 });
             });
         });
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+        }
     </script>
-		}
-
-	}
-</div>
-<script>
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text);
-    }
-</script>
-
+}
 
 <style>
-	.audio-item {
-		border: 1px solid #ccc;
-		border-radius: 6px;
-		padding: 15px;
-		margin-bottom: 20px;
-		background-color: #f7f7f7;
-	}
+    .audio-item {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #f7f7f7;
+    }
 
-		.audio-item::marker {
-			display: none;
-		}
+        .audio-item p {
+            margin: 5px 0;
+        }
 
+    .audio-actions {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 
-		.audio-item p {
-			margin: 5px 0;
-		}
-
-	.audio-actions {
-		margin-top: 10px;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 10px;
-	}
-
-		.audio-actions form,
-		.audio-actions a,
-		.audio-actions button {
-			display: inline-block;
-		}
-
-	.audio-player {
-		margin: 10px 0;
-	}
+        .audio-actions form,
+        .audio-actions a,
+        .audio-actions button {
+            display: inline-block;
+        }
 </style>

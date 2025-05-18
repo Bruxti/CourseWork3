@@ -1,115 +1,116 @@
 ﻿@model AudioFile
 
 @{
-	ViewData["Title"] = "Аудиозапись";
-	var link = Url.Action("Details", "Audio", new { id = Model.Id }, Context.Request.Scheme);
+    ViewData["Title"] = "Аудиозапись";
+    string link = Url.Action("Details", "Audio", new { id = Model.Id }, Context.Request.Scheme);
 }
 
 <h2>@Model.Title</h2>
+
 @{
+    List<(string Label, string? Value)> displayData = new List<(string Label, string? Value)>
+    {
+        ("Название", Model.Title)
+    };
 
-	var displayData = new List<(string Label, string? Value)>
-	{
-		("Название", Model.Title),
-	};
-
-	if (Model.IsMusic)
-	{
-		displayData.Add(("Автор", Model.Author));
-		displayData.Add(("Жанр", Model.Genre));
-		displayData.Add(("Опубликовал", Model.User?.DisplayName));
-	}
+    if (Model.IsMusic)
+    {
+        displayData.Add(("Автор", Model.Author));
+        displayData.Add(("Жанр", Model.Genre));
+        displayData.Add(("Опубликовал", Model.User?.DisplayName));
+    }
 }
+
 <div class="audio-item">
+    @foreach ((string Label, string? Value) item in displayData)
+    {
+        <p>
+            <strong>@item.Label:</strong>
+            @if (!string.IsNullOrWhiteSpace(item.Value))
+            {
+                @item.Value
+            }
+            else
+            {
+                <em>Неизвестно</em>
+            }
+        </p>
+    }
 
-@foreach (var item in displayData)
-{
-	<p>
-		<strong>@item.Label:</strong>
-		@if (!string.IsNullOrWhiteSpace(item.Value))
-		{
-			@item.Value
-		}
-		else
-		{
-			<em>Неизвестно</em>
-		}
-	</p>
-}
+    <audio id="player-@Model.Id"
+           controls
+           preload="none"
+           src="@Url.Action("Stream", "Audio", new { id = Model.Id })"
+           class="w-100"
+           style="max-width: 400px;">
+        Ваш браузер не поддерживает воспроизведение аудио.
+    </audio>
 
+    <div class="mt-2 audio-actions">
+        <form method="post"
+              asp-controller="Audio"
+              asp-action="Like"
+              asp-route-id="@Model.Id"
+              style="display: inline">
+            <button type="submit" class="btn btn-outline-success btn-sm">
+                👍 @Model.Likes
+            </button>
+        </form>
 
+        <form method="post"
+              asp-controller="Audio"
+              asp-action="Dislike"
+              asp-route-id="@Model.Id"
+              style="display: inline">
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+                👎 @Model.Dislikes
+            </button>
+        </form>
 
-	<audio id="player-@Model.Id"
-		   controls
-		   preload="none"
-		   src="@Url.Action("Stream", "Audio", new { id = Model.Id })"
-		   class="w-100"
-		   style="max-width: 400px;">
-		Ваш браузер не поддерживает воспроизведение аудио.
-	</audio>
+        <button type="button"
+                class="btn btn-outline-primary btn-sm"
+                onclick="copyToClipboard('@link')">
+            Копировать ссылку
+        </button>
 
-	<div class="mt-2">
-		<form method="post" asp-controller="Audio" asp-action="Like" asp-route-id="@Model.Id" style="display:inline">
-			<button type="submit" class="btn btn-outline-success btn-sm">👍 @Model.Likes</button>
-		</form>
-		<form method="post" asp-controller="Audio" asp-action="Dislike" asp-route-id="@Model.Id" style="display:inline">
-			<button type="submit" class="btn btn-outline-danger btn-sm">👎 @Model.Dislikes</button>
-			<!--            +++++++++++++++++++++         -->
-		</form>
-		<button class="btn btn-outline-primary btn-sm"
-				onclick="copyToClipboard('@Url.Action("Details", "Audio", new { id = Model.Id }, Context.Request.Scheme)')">
-			Копировать ссылку
-		</button>
-		<!--            -----------------------         -->
-		<a class="btn btn-outline-primary btn-sm" href="@Url.Action("Download", "Audio", new { id = Model.Id })">⬇ Скачать</a>
-
-	</div>
+        <a class="btn btn-outline-primary btn-sm"
+           href="@Url.Action("Download", "Audio", new { id = Model.Id })">
+            ⬇ Скачать
+        </a>
+    </div>
 </div>
 
 @section Scripts {
-	<script>
-            function copyLink() {
-                const link = '@link';
-                navigator.clipboard.writeText(link).then(() => {          
-                }).catch(() => {
-                });
-            }
-        </script>
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+        }
+    </script>
 }
+
 <style>
-	.audio-item {
-		border: 1px solid #ccc;
-		border-radius: 6px;
-		padding: 15px;
-		margin-bottom: 20px;
-		background-color: #f7f7f7;
-	}
+    .audio-item {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #f7f7f7;
+    }
 
-		.audio-item::marker {
-			display: none;
-		}
+        .audio-item p {
+            margin: 5px 0;
+        }
 
+    .audio-actions {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 
-		.audio-item p {
-			margin: 5px 0;
-		}
-
-	.audio-actions {
-		margin-top: 10px;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 10px;
-	}
-
-		.audio-actions form,
-		.audio-actions a,
-		.audio-actions button {
-			display: inline-block;
-		}
-
-	.audio-player {
-		margin: 10px 0;
-	}
+        .audio-actions form,
+        .audio-actions a,
+        .audio-actions button {
+            display: inline-block;
+        }
 </style>
-
-<!--            -----------------------         -->

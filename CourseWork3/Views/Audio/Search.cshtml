@@ -1,34 +1,59 @@
 ﻿@{
-	ViewData["Title"] = "Поиск аудиофайлов";
+    ViewData["Title"] = "Поиск аудиофайлов";
 }
 
 <h2>Поиск</h2>
 
 <form asp-controller="Audio" asp-action="Search" method="post">
-	<div class="form-group">
-		<label for="query">Введите запрос:</label>
-		<input type="text" name="query" class="form-control" required/>
-	</div>
+    <div class="form-group">
+        <label for="query">Введите запрос:</label>
+        <input type="text"
+               id="query"
+               name="query"
+               class="form-control"
+               required />
+    </div>
 
-	<div class="form-group mt-2">
-		<label>Искать по:</label><br/>
-		<div class="form-check form-check-inline">
-			<input class="form-check-input" type="radio" name="category" value="title" checked/>
-			<label class="form-check-label">Названию</label>
-		</div>
-		<div class="form-check form-check-inline">
-			<input class="form-check-input" type="radio" name="category" value="genre"/>
-			<label class="form-check-label">Жанру</label>
-		</div>
-		<div class="form-check form-check-inline">
-			<input class="form-check-input" type="radio" name="category" value="user"/>
-			<label class="form-check-label">Пользователю</label>
-		</div>
-		<div class="form-check form-check-inline">
-			<input class="form-check-input" type="radio" name="category" value="filename"/>
-			<label class="form-check-label">Названию файла</label>
-		</div>
-	</div>
+    <div class="form-group mt-2">
+        <label>Искать по:</label><br />
 
-	<button type="submit" class="btn btn-primary mt-3">Поиск</button>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input"
+                   type="radio"
+                   id="byTitle"
+                   name="category"
+                   value="title"
+                   checked />
+            <label class="form-check-label" for="byTitle">Названию</label>
+        </div>
+
+        <div class="form-check form-check-inline">
+            <input class="form-check-input"
+                   type="radio"
+                   id="byGenre"
+                   name="category"
+                   value="genre" />
+            <label class="form-check-label" for="byGenre">Жанру</label>
+        </div>
+
+        <div class="form-check form-check-inline">
+            <input class="form-check-input"
+                   type="radio"
+                   id="byUser"
+                   name="category"
+                   value="user" />
+            <label class="form-check-label" for="byUser">Пользователю</label>
+        </div>
+
+        <div class="form-check form-check-inline">
+            <input class="form-check-input"
+                   type="radio"
+                   id="byFilename"
+                   name="category"
+                   value="filename" />
+            <label class="form-check-label" for="byFilename">Названию файла</label>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Поиск</button>
 </form>
