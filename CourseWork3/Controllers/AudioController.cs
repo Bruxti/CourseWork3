@@ -13,11 +13,14 @@ public class AudioController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IWebHostEnvironment _environment;
 
-    public AudioController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env)
+    public AudioController(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        IWebHostEnvironment environment)
     {
         _context = context;
         _userManager = userManager;
-        _environment = env;
+        _environment = environment;
     }
 
     [HttpGet]
@@ -27,48 +30,49 @@ public class AudioController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Upload(string title, string genre, string author, IFormFile audioFile)
+    public async Task<IActionResult> Upload(
+        string title,
+        string genre,
+        string author,
+        IFormFile audioFile)
     {
-        bool IsMusic = Request.Form["IsMusic"] == "on";
+        bool isMusic = Request.Form["IsMusic"] == "on";
 
-        if (audioFile != null && audioFile.Length > 0)
+        if (audioFile == null || audioFile.Length == 0)
         {
-            string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-            Directory.CreateDirectory(uploadsFolder);
-
-            string fileName = Guid.NewGuid() + Path.GetExtension(audioFile.FileName);
-            string filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (FileStream stream = new FileStream(filePath, FileMode.Create))
-            {
-                await audioFile.CopyToAsync(stream);
-            }
-
-            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ApplicationUser? user = await _userManager.GetUserAsync(User);
-
-            AudioFile audio = new AudioFile
-            {
-                Title = title,
-                Genre = IsMusic ? genre : null,
-                Author = IsMusic ? author : null,
-                FileName = fileName,
-                OriginalName = audioFile.FileName,
-                UserId = userId,
-                UploadDate = DateTime.Now,
-                IsMusic = IsMusic
-            };
-
-            _context.AudioFiles.Add(audio);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("Index", "Home");
+            ModelState.AddModelError("", "Файл не выбран или пуст.");
+            return View();
         }
 
-        ModelState.AddModelError("", "Файл не выбран или пуст.");
-        return View();
-    }
+        string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+        Directory.CreateDirectory(uploadsFolder);
 
+        string fileName = $"{Guid.NewGuid()}{Path.GetExtension(audioFile.FileName)}";
+        string filePath = Path.Combine(uploadsFolder, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await audioFile.CopyToAsync(stream);
+        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        AudioFile? audio = new AudioFile
+        {
+            Title = title,
+            Genre = isMusic ? genre : null,
+            Author = isMusic ? author : null,
+            FileName = fileName,
+            OriginalName = audioFile.FileName,
+            UserId = userId,
+            UploadDate = DateTime.UtcNow,
+            IsMusic = isMusic
+        };
+
+        _context.AudioFiles.Add(audio);
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("Index", "Home");
+    }
 
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
@@ -77,16 +81,17 @@ public class AudioController : Controller
         if (audioFile == null)
             return NotFound();
 
-        string filePath = Path.Combine(_environment.WebRootPath, "audio", audioFile.FileName);
+        string filePath = Path.Combine(_environment.WebRootPath, "uploads", audioFile.FileName);
         if (System.IO.File.Exists(filePath))
             System.IO.File.Delete(filePath);
 
         _context.AudioFiles.Remove(audioFile);
         await _context.SaveChangesAsync();
-        return RedirectToAction("MyFiles", "Audio");
+
+        return RedirectToAction("MyFiles");
     }
 
-    [Authorize]
+    [HttpGet]
     public IActionResult MyFiles()
     {
         string? userId = _userManager.GetUserId(User);
@@ -99,7 +104,6 @@ public class AudioController : Controller
     }
 
     [HttpGet]
-    [Authorize]
     public async Task<IActionResult> Edit(int id)
     {
         AudioFile? audio = await _context.AudioFiles.FindAsync(id);
@@ -110,9 +114,13 @@ public class AudioController : Controller
     }
 
     [HttpPost]
-    [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, string title, string genre, string author, string originalName)
+    public async Task<IActionResult> Edit(
+        int id,
+        string title,
+        string genre,
+        string author,
+        string originalName)
     {
         AudioFile? audio = await _context.AudioFiles.FindAsync(id);
         if (audio == null || audio.UserId != _userManager.GetUserId(User))
@@ -130,33 +138,34 @@ public class AudioController : Controller
         audio.OriginalName = originalName;
 
         await _context.SaveChangesAsync();
-
         return RedirectToAction("MyFiles");
     }
 
     [AllowAnonymous]
+    [HttpGet]
     public IActionResult Stream(int id)
     {
-        var file = _context.AudioFiles.Find(id);
-        if (file == null) return NotFound();
+        AudioFile? audio = _context.AudioFiles.Find(id);
+        if (audio == null)
+            return NotFound();
 
-        var path = Path.Combine(_environment.WebRootPath, "uploads", file.FileName);
+        string path = Path.Combine(_environment.WebRootPath, "uploads", audio.FileName);
         if (!System.IO.File.Exists(path))
             return NotFound($"Файл не найден: {path}");
 
-        var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+        FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
         return File(stream, "audio/mpeg", enableRangeProcessing: true);
     }
 
-
-    [HttpPost]
     [AllowAnonymous]
+    [HttpPost]
     public async Task<IActionResult> RegisterPlay(int id)
     {
-        AudioFile? file = await _context.AudioFiles.FindAsync(id);
-        if (file == null) return NotFound();
+        AudioFile? audio = await _context.AudioFiles.FindAsync(id);
+        if (audio == null)
+            return NotFound();
 
-        file.PlayCount++;
+        audio.PlayCount++;
         await _context.SaveChangesAsync();
         return Ok();
     }
@@ -165,10 +174,10 @@ public class AudioController : Controller
     public IActionResult Like(int id)
     {
         AudioFile? audio = _context.AudioFiles.Find(id);
-        if (audio == null) return NotFound();
+        if (audio == null)
+            return NotFound();
 
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         UserVote? existingVote = _context.UserVotes
             .FirstOrDefault(v => v.UserId == userId && v.AudioFileId == id);
 
@@ -197,10 +206,10 @@ public class AudioController : Controller
     public IActionResult Dislike(int id)
     {
         AudioFile? audio = _context.AudioFiles.Find(id);
-        if (audio == null) return NotFound();
+        if (audio == null)
+            return NotFound();
 
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         UserVote? existingVote = _context.UserVotes
             .FirstOrDefault(v => v.UserId == userId && v.AudioFileId == id);
 
@@ -234,40 +243,66 @@ public class AudioController : Controller
 
     [AllowAnonymous]
     [HttpPost]
-    public IActionResult Search(string query, string category, int page = 1, int pageSize = 15)
+    public IActionResult Search(
+        string query,
+        string category,
+        int page = 1,
+        int pageSize = 15)
     {
         if (string.IsNullOrWhiteSpace(query) || string.IsNullOrWhiteSpace(category))
-            return View("SearchResults", Enumerable.Empty<AudioFile>().ToPagedList(page, pageSize));
+        {
+            X.PagedList.IPagedList<AudioFile> emptyList = Enumerable.Empty<AudioFile>().ToPagedList(page, pageSize);
+            return View("SearchResults", emptyList);
+        }
 
-        IQueryable<AudioFile> result = _context.AudioFiles.Include(a => a.User);
+        IQueryable<AudioFile> result = _context.AudioFiles
+            .Include(a => a.User)
+            .AsQueryable();
 
         switch (category.ToLower())
         {
             case "title":
-                result = result.Where(a => a.Title != null && a.Title.ToLower().Contains(query.ToLower()));
+                result = result.Where(a =>
+                    !string.IsNullOrWhiteSpace(a.Title) &&
+                    a.Title.ToLower().Contains(query.ToLower()));
                 break;
+
             case "genre":
-                result = result.Where(a => a.Genre != null && a.Genre.ToLower().Contains(query.ToLower()));
-                result = result.Where(a => !a.IsMusic);
+                result = result.Where(a =>
+                    !string.IsNullOrWhiteSpace(a.Genre) &&
+                    a.Genre.ToLower().Contains(query.ToLower()) &&
+                    !a.IsMusic);
                 break;
+
             case "user":
-                result = result.Where(a => a.User != null && a.User.DisplayName != null && a.User.DisplayName.ToLower().Contains(query.ToLower()));
+                result = result.Where(a =>
+                    a.User != null &&
+                    !string.IsNullOrWhiteSpace(a.User.DisplayName) &&
+                    a.User.DisplayName.ToLower().Contains(query.ToLower()));
                 break;
+
             case "filename":
-                result = result.Where(a => a.OriginalName != null && a.OriginalName.ToLower().Contains(query.ToLower()));
+                result = result.Where(a =>
+                    !string.IsNullOrWhiteSpace(a.OriginalName) &&
+                    a.OriginalName.ToLower().Contains(query.ToLower()));
                 break;
+
             default:
                 result = Enumerable.Empty<AudioFile>().AsQueryable();
                 break;
         }
 
+        var pagedResult = result
+            .OrderByDescending(a => a.Id)
+            .ToPagedList(page, pageSize);
 
-        X.PagedList.IPagedList<AudioFile> pagedResult = result.OrderByDescending(a => a.Id).ToPagedList(page, pageSize);
         ViewBag.Query = query;
         ViewBag.Category = category;
 
         return View("SearchResults", pagedResult);
     }
+
+    [AllowAnonymous]
     public async Task<IActionResult> Download(int id)
     {
         AudioFile? audio = await _context.AudioFiles.FindAsync(id);
@@ -305,10 +340,10 @@ public class AudioController : Controller
         if (user == null)
             return NotFound();
 
-        var totalDownloads = user.AudioFiles.Sum(f => f.DownloadCount);
-        var totalPlays = user.AudioFiles.Sum(f => f.PlayCount);
+        int totalDownloads = user.AudioFiles.Sum(f => f.DownloadCount);
+        int totalPlays = user.AudioFiles.Sum(f => f.PlayCount);
 
-        var model = new UserProfileViewModel
+        UserProfileViewModel model = new UserProfileViewModel
         {
             DisplayName = user.DisplayName,
             AudioFiles = user.AudioFiles.ToList(),
@@ -318,6 +353,4 @@ public class AudioController : Controller
 
         return View("~/Views/User/UserProfile.cshtml", model);
     }
-
-
 }

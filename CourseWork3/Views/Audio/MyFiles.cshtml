@@ -12,10 +12,10 @@
 }
 else
 {
-	<ul>
+	<div>
 		@foreach (var audio in Model)
 		{
-			<li class="audio-item">
+			<div class="audio-item">
 				@{
 					var displayData = new List<(string Label, string? Value)>
 					{
@@ -64,9 +64,9 @@ else
 					<input type="hidden" name="id" value="@audio.Id"/>
 					<button type="submit" class="btn btn-danger">Удалить</button>
 				</form>
-			</li>
+			</div>
 		}
-	</ul>
+	</div>
 }
 <script>
     function copyToClipboard(text) {
